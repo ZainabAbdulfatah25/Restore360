@@ -1,0 +1,158 @@
+import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Users, FolderOpen, FileText, ArrowRightLeft, TrendingUp, TrendingDown } from 'lucide-react';
+import { MainLayout } from '../layouts';
+import { Card, Spinner } from '../components/common';
+import { DataTable } from '../components/tables';
+import { useActivityLogger } from '../hooks';
+import { reportsApi } from '../api';
+import { DashboardStats } from '../types';
+
+export const DashboardPage = () => {
+  const [stats, setStats] = useState<DashboardStats | null>(null);
+  const [loading, setLoading] = useState(true);
+  const { track } = useActivityLogger();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    loadDashboardData();
+  }, []);
+
+  const loadDashboardData = async () => {
+    try {
+      const data = await reportsApi.getDashboardStats();
+      setStats(data);
+      await track('view', 'dashboard', 'Viewed dashboard');
+    } catch (error) {
+      console.error('Failed to load dashboard data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <MainLayout>
+        <div className="flex items-center justify-center h-96">
+          <Spinner size="lg" />
+        </div>
+      </MainLayout>
+    );
+  }
+
+  const statCards = [
+    {
+      title: 'Total Cases',
+      value: stats?.total_cases || 0,
+      icon: FolderOpen,
+      color: 'blue',
+      link: '/cases',
+    },
+    {
+      title: 'Open Cases',
+      value: stats?.open_cases || 0,
+      icon: TrendingUp,
+      color: 'green',
+      link: '/cases?status=open',
+    },
+    {
+      title: 'Total Users',
+      value: stats?.total_users || 0,
+      icon: Users,
+      color: 'purple',
+      link: '/users',
+    },
+    {
+      title: 'Registrations',
+      value: stats?.total_registrations || 0,
+      icon: FileText,
+      color: 'orange',
+      link: '/registrations',
+    },
+    {
+      title: 'Pending Referrals',
+      value: stats?.pending_referrals || 0,
+      icon: ArrowRightLeft,
+      color: 'red',
+      link: '/referrals',
+    },
+    {
+      title: 'Closed Cases',
+      value: stats?.closed_cases || 0,
+      icon: TrendingDown,
+      color: 'gray',
+      link: '/cases?status=closed',
+    },
+  ];
+
+  const colorClasses = {
+    blue: 'bg-blue-100 text-blue-600',
+    green: 'bg-green-100 text-green-600',
+    purple: 'bg-purple-100 text-purple-600',
+    orange: 'bg-orange-100 text-orange-600',
+    red: 'bg-red-100 text-red-600',
+    gray: 'bg-gray-100 text-gray-600',
+  };
+
+  return (
+    <MainLayout>
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
+          <p className="text-gray-600 mt-1">Welcome back! Here's an overview of your system.</p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {statCards.map((stat) => (
+            <div key={stat.title} onClick={() => navigate(stat.link)}>
+              <Card className="cursor-pointer hover:shadow-md transition-shadow">
+                <div className="flex items-center justify-between p-6">
+                  <div>
+                    <p className="text-sm font-medium text-gray-600">{stat.title}</p>
+                    <p className="text-3xl font-bold text-gray-900 mt-2">{stat.value}</p>
+                  </div>
+                  <div className={`p-3 rounded-full ${colorClasses[stat.color as keyof typeof colorClasses]}`}>
+                    <stat.icon className="w-6 h-6" />
+                  </div>
+                </div>
+              </Card>
+            </div>
+          ))}
+        </div>
+
+        <Card title="Recent Activity">
+          <DataTable
+            data={stats?.recent_activity || []}
+            columns={[
+              {
+                key: 'user',
+                label: 'User',
+                render: (item) => item.user?.name || 'Unknown',
+              },
+              {
+                key: 'action',
+                label: 'Action',
+              },
+              {
+                key: 'module',
+                label: 'Module',
+              },
+              {
+                key: 'description',
+                label: 'Description',
+              },
+              {
+                key: 'created_at',
+                label: 'Time',
+                render: (item) => new Date(item.created_at).toLocaleString(),
+              },
+            ]}
+            emptyState={
+              <div className="text-center py-12 text-gray-500">No recent activity</div>
+            }
+          />
+        </Card>
+      </div>
+    </MainLayout>
+  );
+};
