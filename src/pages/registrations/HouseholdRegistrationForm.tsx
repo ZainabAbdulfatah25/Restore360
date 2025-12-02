@@ -4,6 +4,7 @@ import { Plus, X, MapPin, User, Users, QrCode } from 'lucide-react';
 import { Card, Button, Input, Select } from '../../components/common';
 import { supabase } from '../../lib/supabase';
 import { QRCodeSVG } from 'qrcode.react';
+import { useActivityLogger } from '../../hooks';
 
 interface FamilyMember {
   full_name: string;
@@ -38,6 +39,7 @@ export const HouseholdRegistrationForm = ({ onSuccess, onCancel }: Props) => {
   const [qrCode, setQrCode] = useState<string | null>(null);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const { track } = useActivityLogger();
 
   const {
     register,
@@ -138,6 +140,13 @@ export const HouseholdRegistrationForm = ({ onSuccess, onCancel }: Props) => {
           console.error('Members error:', membersError);
         }
       }
+
+      await track('create', 'registrations', `Household registered: ${data.household_head}`, {
+        registration_id: registration.id,
+        qr_code: generatedQrCode,
+        household_size: familyMembers.length + 1,
+        category: data.category
+      });
 
       setQrCode(generatedQrCode);
       setSuccess('Household registered successfully!');

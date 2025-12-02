@@ -16,6 +16,7 @@ export const DashboardPage = () => {
   const [casesByCategory, setCasesByCategory] = useState<any>({});
   const [activityTrend, setActivityTrend] = useState<Array<{date: string; cases: number; referrals: number; registrations: number; label: string}>>([]);
   const [loading, setLoading] = useState(true);
+  const [isLive, setIsLive] = useState(true);
   const { track } = useActivityLogger();
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -30,6 +31,8 @@ export const DashboardPage = () => {
     const casesChannel = supabase
       .channel('cases-changes')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'cases' }, () => {
+        setIsLive(false);
+        setTimeout(() => setIsLive(true), 1000);
         loadDashboardData();
       })
       .subscribe();
@@ -37,6 +40,8 @@ export const DashboardPage = () => {
     const referralsChannel = supabase
       .channel('referrals-changes')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'referrals' }, () => {
+        setIsLive(false);
+        setTimeout(() => setIsLive(true), 1000);
         loadDashboardData();
       })
       .subscribe();
@@ -44,6 +49,8 @@ export const DashboardPage = () => {
     const registrationsChannel = supabase
       .channel('registrations-changes')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'registrations' }, () => {
+        setIsLive(false);
+        setTimeout(() => setIsLive(true), 1000);
         loadDashboardData();
       })
       .subscribe();
@@ -51,6 +58,8 @@ export const DashboardPage = () => {
     const activityChannel = supabase
       .channel('activity-changes')
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'activity_logs' }, () => {
+        setIsLive(false);
+        setTimeout(() => setIsLive(true), 1000);
         loadDashboardData();
       })
       .subscribe();
@@ -207,15 +216,19 @@ export const DashboardPage = () => {
     <MainLayout>
       <div className="space-y-4 sm:space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-          <div>
-            <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-primary-600 to-accent-600 bg-clip-text text-transparent">Dashboard</h1>
-            <p className="text-gray-600 mt-1">
-              {isAdmin ? 'System-wide overview of all activities' : `Your personal activity overview${user?.organization_name ? ` - ${user.organization_name}` : ''}`}
-            </p>
-          </div>
-          <div className="flex items-center gap-2 text-sm">
-            <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-            <span className="text-gray-600">Live Updates</span>
+          <div className="flex items-center gap-3">
+            <div className="flex-1">
+              <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-primary-600 to-accent-600 bg-clip-text text-transparent">Dashboard</h1>
+              <p className="text-gray-600 mt-1">
+                {isAdmin ? 'System-wide overview of all activities' : `Your personal activity overview${user?.organization_name ? ` - ${user.organization_name}` : ''}`}
+              </p>
+            </div>
+            <div className="flex items-center gap-2 px-3 py-1.5 bg-white border border-gray-200 rounded-full shadow-sm">
+              <div className={`w-2 h-2 rounded-full ${isLive ? 'bg-green-500 animate-pulse' : 'bg-gray-400'}`}></div>
+              <span className="text-xs font-medium text-gray-600">
+                {isLive ? 'Live' : 'Updating...'}
+              </span>
+            </div>
           </div>
         </div>
 
