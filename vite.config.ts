@@ -1,14 +1,14 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 
-// https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react()],
-  base: '/', // <-- critical for correct paths in production
+  base: '/', // adjust if deploying to a subfolder like GitHub Pages
   optimizeDeps: {
     exclude: ['lucide-react'],
   },
   build: {
-    outDir: 'dist', // explicit output folder
+    outDir: 'dist',
   },
+  // remove historyApiFallback
 });
