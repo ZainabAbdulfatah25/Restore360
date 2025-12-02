@@ -25,17 +25,20 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    let mounted = true;
+
     // Set a timeout to prevent infinite loading
     const loadingTimeout = setTimeout(() => {
-      if (loading) {
-        console.warn('Auth initialization timed out');
-        setLoading(false);
-      }
-    }, 5000);
+      console.warn('Auth initialization timed out');
+      setLoading(false);
+    }, 3000);
 
     // Check active sessions and sets the user
     supabase.auth.getSession()
       .then(({ data: { session } }) => {
+        if (!mounted) return;
+        clearTimeout(loadingTimeout);
+
         if (session?.user) {
           loadUserProfile(session.user.id);
         } else {
@@ -43,12 +46,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         }
       })
       .catch((error) => {
+        if (!mounted) return;
         console.error('Error getting session:', error);
+        clearTimeout(loadingTimeout);
         setLoading(false);
       });
 
     // Listen for changes on auth state
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (!mounted) return;
+
       if (session?.user) {
         loadUserProfile(session.user.id);
       } else {
@@ -58,6 +65,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     });
 
     return () => {
+      mounted = false;
       clearTimeout(loadingTimeout);
       subscription.unsubscribe();
     };

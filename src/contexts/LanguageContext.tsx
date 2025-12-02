@@ -318,33 +318,43 @@ export const LanguageProvider = ({ children }: { children: ReactNode }) => {
   const [language, setLanguageState] = useState<Language>('en');
 
   useEffect(() => {
-    loadUserLanguage();
+    loadUserLanguage().catch((error) => {
+      console.error('Error loading user language:', error);
+    });
   }, []);
 
   const loadUserLanguage = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (user) {
-      const { data } = await supabase
-        .from('users')
-        .select('language')
-        .eq('id', user.id)
-        .maybeSingle();
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data } = await supabase
+          .from('users')
+          .select('language')
+          .eq('id', user.id)
+          .maybeSingle();
 
-      if (data?.language) {
-        setLanguageState(data.language as Language);
+        if (data?.language) {
+          setLanguageState(data.language as Language);
+        }
       }
+    } catch (error) {
+      console.error('Failed to load user language:', error);
     }
   };
 
   const setLanguage = async (lang: Language) => {
     setLanguageState(lang);
 
-    const { data: { user } } = await supabase.auth.getUser();
-    if (user) {
-      await supabase
-        .from('users')
-        .update({ language: lang })
-        .eq('id', user.id);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        await supabase
+          .from('users')
+          .update({ language: lang })
+          .eq('id', user.id);
+      }
+    } catch (error) {
+      console.error('Failed to update user language:', error);
     }
   };
 
