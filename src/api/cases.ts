@@ -127,4 +127,43 @@ export const casesApi = {
     if (error) throw error;
     return data;
   },
+
+  approveCase: async (id: string): Promise<Case> => {
+    const { data: user } = await supabase.auth.getUser();
+
+    const { data, error } = await supabase
+      .from('cases')
+      .update({
+        approval_status: 'approved',
+        approved_by: user?.user?.id,
+        approved_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
+  },
+
+  rejectCase: async (id: string, reason: string): Promise<Case> => {
+    const { data: user } = await supabase.auth.getUser();
+
+    const { data, error } = await supabase
+      .from('cases')
+      .update({
+        approval_status: 'rejected',
+        approved_by: user?.user?.id,
+        approved_at: new Date().toISOString(),
+        rejection_reason: reason,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
+  },
 };

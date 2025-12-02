@@ -110,4 +110,45 @@ export const registrationsApi = {
 
     if (error) throw error;
   },
+
+  approveRegistration: async (id: string): Promise<Registration> => {
+    const { data: user } = await supabase.auth.getUser();
+
+    const { data, error } = await supabase
+      .from('registrations')
+      .update({
+        approval_status: 'approved',
+        status: 'approved',
+        approved_by: user?.user?.id,
+        approved_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
+  },
+
+  rejectRegistration: async (id: string, reason: string): Promise<Registration> => {
+    const { data: user } = await supabase.auth.getUser();
+
+    const { data, error } = await supabase
+      .from('registrations')
+      .update({
+        approval_status: 'rejected',
+        status: 'rejected',
+        approved_by: user?.user?.id,
+        approved_at: new Date().toISOString(),
+        rejection_reason: reason,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
+  },
 };

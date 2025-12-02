@@ -2,7 +2,7 @@ export interface User {
   id: string;
   name: string;
   email: string;
-  role: 'admin' | 'case_worker' | 'field_officer' | 'viewer';
+  role: 'admin' | 'case_worker' | 'field_officer' | 'viewer' | 'organization';
   phone?: string;
   department?: string;
   organization_name?: string;
@@ -29,6 +29,10 @@ export interface Case {
     address?: string;
   };
   tags?: string[];
+  approval_status?: 'pending' | 'approved' | 'rejected';
+  approved_by?: string;
+  approved_at?: string;
+  rejection_reason?: string;
   created_at: string;
   updated_at: string;
 }
@@ -48,6 +52,10 @@ export interface Registration {
   description: string;
   attachments?: Attachment[];
   status: 'pending' | 'approved' | 'rejected';
+  approval_status?: 'pending' | 'approved' | 'rejected';
+  approved_by?: string;
+  approved_at?: string;
+  rejection_reason?: string;
   created_by?: string;
   created_at: string;
   updated_at: string;
@@ -78,6 +86,10 @@ export interface Referral {
   reason: string;
   notes?: string;
   status: 'pending' | 'accepted' | 'rejected' | 'completed';
+  approval_status?: 'pending' | 'approved' | 'rejected';
+  approved_by?: string;
+  approved_at?: string;
+  rejection_reason?: string;
   created_at: string;
   updated_at: string;
 }

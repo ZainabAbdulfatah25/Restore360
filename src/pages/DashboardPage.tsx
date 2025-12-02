@@ -14,12 +14,13 @@ export const DashboardPage = () => {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [urgentCases, setUrgentCases] = useState<Case[]>([]);
   const [casesByCategory, setCasesByCategory] = useState<any>({});
-  const [activityTrend, setActivityTrend] = useState<Array<{date: string; value: number}>>([]);
+  const [activityTrend, setActivityTrend] = useState<Array<{date: string; value: number; label: string}>>([]);
   const [loading, setLoading] = useState(true);
   const { track } = useActivityLogger();
   const { user } = useAuth();
   const navigate = useNavigate();
   const isAdmin = user?.role === 'admin';
+  const canSeeAll = user?.role === 'admin' || user?.role === 'organization';
 
   useEffect(() => {
     if (!user) return;
@@ -90,18 +91,30 @@ export const DashboardPage = () => {
         education: categories[4].total,
       });
 
+      const { data: activityLogs } = await supabase
+        .from('activity_logs')
+        .select('created_at')
+        .gte('created_at', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString())
+        .order('created_at', { ascending: true });
+
       const last7Days = Array.from({ length: 7 }, (_, i) => {
         const date = new Date();
         date.setDate(date.getDate() - (6 - i));
         return date.toISOString().split('T')[0];
       });
 
-      const trendData = last7Days.map((date, index) => ({
-        date,
-        value: Math.floor(Math.random() * 20) + 10 + index * 2,
-      }));
+      const activityByDay = last7Days.map(date => {
+        const count = activityLogs?.filter(log =>
+          log.created_at.split('T')[0] === date
+        ).length || 0;
+        return {
+          date,
+          value: count,
+          label: new Date(date).toLocaleDateString('en-US', { weekday: 'short' })
+        };
+      });
 
-      setActivityTrend(trendData);
+      setActivityTrend(activityByDay);
 
       await track('view', 'dashboard', 'Viewed dashboard');
     } catch (error) {
@@ -269,33 +282,6 @@ export const DashboardPage = () => {
           <Card className="shadow-lg">
             <div className="p-6">
               <div className="flex items-center gap-2 mb-6">
-                <div className="p-2 bg-primary-100 rounded-lg">
-                  <BarChart3 className="w-5 h-5 text-primary-600" />
-                </div>
-                <h3 className="text-lg font-bold text-gray-900">Activity Trend</h3>
-              </div>
-              <p className="text-sm text-gray-600 mb-4">Daily activity over the last 7 days</p>
-              <ActivityChart
-                data={activityTrend.map((item, index) => ({
-                  label: new Date(item.date).toLocaleDateString('en-US', { weekday: 'short' }),
-                  value: item.value,
-                  color: index % 2 === 0 ? '#0ea5e9' : '#06b6d4',
-                }))}
-                height={180}
-              />
-              <div className="mt-4 flex items-center justify-between text-sm">
-                <span className="text-gray-600">Last 7 days</span>
-                <div className="flex items-center gap-2">
-                  <TrendingUp className="w-4 h-4 text-success-600" />
-                  <span className="text-success-600 font-semibold">+12%</span>
-                </div>
-              </div>
-            </div>
-          </Card>
-
-          <Card className="shadow-lg">
-            <div className="p-6">
-              <div className="flex items-center gap-2 mb-6">
                 <div className="p-2 bg-accent-100 rounded-lg">
                   <BarChart3 className="w-5 h-5 text-accent-600" />
                 </div>
@@ -314,41 +300,8 @@ export const DashboardPage = () => {
               />
             </div>
           </Card>
-        </div>
 
-        <Card title="Cases by Category" className="hidden">
-          <div className="p-6 space-y-4">
-            {Object.entries(casesByCategory).map(([category, count]) => {
-              const categoryColors: Record<string, { bg: string; text: string }> = {
-                shelter: { bg: 'bg-blue-100', text: 'text-blue-700' },
-                food: { bg: 'bg-green-100', text: 'text-green-700' },
-                health: { bg: 'bg-red-100', text: 'text-red-700' },
-                protection: { bg: 'bg-purple-100', text: 'text-purple-700' },
-                education: { bg: 'bg-yellow-100', text: 'text-yellow-700' },
-              };
-              const colors = categoryColors[category] || { bg: 'bg-gray-100', text: 'text-gray-700' };
-              const total = stats?.total_cases || 1;
-              const percentage = Math.round(((count as number) / total) * 100);
-
-              return (
-                <div key={category}>
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm font-medium text-gray-700 capitalize">{category}</span>
-                    <span className="text-sm font-bold text-gray-900">{count as number}</span>
-                  </div>
-                  <div className="w-full bg-gray-200 rounded-full h-2">
-                    <div
-                      className={`${colors.bg} h-2 rounded-full transition-all`}
-                      style={{ width: `${percentage}%` }}
-                    />
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </Card>
-
-        <div className="space-y-6">
+          <div className="space-y-6">
             <Card title="Quick Actions" className="shadow-lg">
               <div className="p-4 space-y-3">
                 <p className="text-sm text-gray-600 mb-4">Frequently used features</p>
@@ -393,6 +346,36 @@ export const DashboardPage = () => {
               </div>
             </Card>
 
+            <Card className="shadow-lg">
+              <div className="p-6">
+                <div className="flex items-center gap-2 mb-6">
+                  <div className="p-2 bg-primary-100 rounded-lg">
+                    <BarChart3 className="w-5 h-5 text-primary-600" />
+                  </div>
+                  <h3 className="text-lg font-bold text-gray-900">Activity Trend</h3>
+                  <div className="ml-auto flex items-center gap-2">
+                    <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                    <span className="text-xs text-gray-600">Live</span>
+                  </div>
+                </div>
+                <p className="text-sm text-gray-600 mb-4">Real-time user activity over the last 7 days</p>
+                <ActivityChart
+                  data={activityTrend.map((item, index) => ({
+                    label: item.label,
+                    value: item.value,
+                    color: index % 2 === 0 ? '#0ea5e9' : '#06b6d4',
+                  }))}
+                  height={180}
+                />
+                <div className="mt-4 flex items-center justify-between text-sm">
+                  <span className="text-gray-600">Last 7 days</span>
+                  <span className="text-gray-900 font-medium">
+                    Total: {activityTrend.reduce((sum, item) => sum + item.value, 0)} activities
+                  </span>
+                </div>
+              </div>
+            </Card>
+
             <Card title="System Status" className="shadow-lg">
               <div className="p-4 space-y-3">
                 <div className="flex items-center justify-between">
@@ -410,6 +393,7 @@ export const DashboardPage = () => {
               </div>
             </Card>
           </div>
+        </div>
       </div>
     </MainLayout>
   );

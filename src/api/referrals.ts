@@ -102,4 +102,45 @@ export const referralsApi = {
 
     if (error) throw error;
   },
+
+  approveReferral: async (id: string): Promise<Referral> => {
+    const { data: user } = await supabase.auth.getUser();
+
+    const { data, error } = await supabase
+      .from('referrals')
+      .update({
+        approval_status: 'approved',
+        status: 'accepted',
+        approved_by: user?.user?.id,
+        approved_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
+  },
+
+  rejectReferral: async (id: string, reason: string): Promise<Referral> => {
+    const { data: user } = await supabase.auth.getUser();
+
+    const { data, error } = await supabase
+      .from('referrals')
+      .update({
+        approval_status: 'rejected',
+        status: 'rejected',
+        approved_by: user?.user?.id,
+        approved_at: new Date().toISOString(),
+        rejection_reason: reason,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
+  },
 };
