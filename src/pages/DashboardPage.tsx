@@ -4,7 +4,7 @@ import { Users, FolderOpen, FileText, ArrowRightLeft, Home, FileCheck, AlertTria
 import { MainLayout } from '../layouts';
 import { Card, Spinner, Badge } from '../components/common';
 import { DataTable } from '../components/tables';
-import { ActivityChart, LineChart } from '../components/charts';
+import { ActivityChart } from '../components/charts';
 import { useActivityLogger, useAuth } from '../hooks';
 import { reportsApi, casesApi } from '../api';
 import { DashboardStats, Case } from '../types';
@@ -125,6 +125,7 @@ export const DashboardPage = () => {
     {
       title: 'Total Households',
       subtitle: 'Registered households',
+      description: 'Total number of registered households in the system',
       value: stats?.total_cases || 0,
       icon: Home,
       color: 'blue',
@@ -133,6 +134,7 @@ export const DashboardPage = () => {
     {
       title: 'Total Beneficiaries',
       subtitle: 'IDPs and Returnees',
+      description: 'Internally displaced persons and returnees registered',
       value: stats?.total_registrations || 0,
       icon: Users,
       color: 'green',
@@ -141,6 +143,7 @@ export const DashboardPage = () => {
     {
       title: 'Active Cases',
       subtitle: 'Open and in progress',
+      description: 'Cases currently being processed or awaiting action',
       value: stats?.open_cases || 0,
       icon: FolderOpen,
       color: 'orange',
@@ -149,6 +152,7 @@ export const DashboardPage = () => {
     {
       title: 'Pending Referrals',
       subtitle: 'Awaiting response',
+      description: 'Referrals sent to organizations awaiting response',
       value: stats?.pending_referrals || 0,
       icon: ArrowRightLeft,
       color: 'purple',
@@ -195,24 +199,6 @@ export const DashboardPage = () => {
           </div>
         </div>
 
-        {!isAdmin && (
-          <div className="bg-gradient-to-r from-primary-50 to-accent-50 border border-primary-200 rounded-xl p-4 shadow-sm animate-fade-in">
-            <div className="flex items-start gap-3">
-              <div className="flex-shrink-0">
-                <svg className="w-5 h-5 text-primary-600" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
-                </svg>
-              </div>
-              <div className="flex-1">
-                <p className="text-sm font-semibold text-primary-900">Viewing Your Data Only</p>
-                <p className="text-sm text-primary-700 mt-1">
-                  This dashboard shows only the cases, referrals, and registrations that you created.
-                  {user?.organization_name && ` You're logged in as ${user.organization_name}.`}
-                </p>
-              </div>
-            </div>
-          </div>
-        )}
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
           {statCards.map((stat) => {
@@ -233,7 +219,8 @@ export const DashboardPage = () => {
                   <div>
                     <p className="text-sm font-semibold text-gray-600 mb-2">{stat.title}</p>
                     <p className="text-4xl font-bold text-gray-900 mb-1 tracking-tight">{stat.value}</p>
-                    <p className="text-xs text-gray-500">{stat.subtitle}</p>
+                    <p className="text-xs text-gray-500 mb-2">{stat.subtitle}</p>
+                    <p className="text-xs text-gray-600 mt-2">{stat.description}</p>
                   </div>
                 </div>
               </div>
@@ -283,11 +270,19 @@ export const DashboardPage = () => {
             <div className="p-6">
               <div className="flex items-center gap-2 mb-6">
                 <div className="p-2 bg-primary-100 rounded-lg">
-                  <Activity className="w-5 h-5 text-primary-600" />
+                  <BarChart3 className="w-5 h-5 text-primary-600" />
                 </div>
                 <h3 className="text-lg font-bold text-gray-900">Activity Trend</h3>
               </div>
-              <LineChart data={activityTrend} color="#0ea5e9" height={180} />
+              <p className="text-sm text-gray-600 mb-4">Daily activity over the last 7 days</p>
+              <ActivityChart
+                data={activityTrend.map((item, index) => ({
+                  label: new Date(item.date).toLocaleDateString('en-US', { weekday: 'short' }),
+                  value: item.value,
+                  color: index % 2 === 0 ? '#0ea5e9' : '#06b6d4',
+                }))}
+                height={180}
+              />
               <div className="mt-4 flex items-center justify-between text-sm">
                 <span className="text-gray-600">Last 7 days</span>
                 <div className="flex items-center gap-2">
@@ -306,6 +301,7 @@ export const DashboardPage = () => {
                 </div>
                 <h3 className="text-lg font-bold text-gray-900">Cases by Category</h3>
               </div>
+              <p className="text-sm text-gray-600 mb-4">Distribution of cases across support categories</p>
               <ActivityChart
                 data={[
                   { label: 'Shelter', value: casesByCategory.shelter || 0, color: '#0ea5e9' },
@@ -352,90 +348,7 @@ export const DashboardPage = () => {
           </div>
         </Card>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
-          <Card title="Recent Activity" className="lg:col-span-2 shadow-lg">
-            <div className="p-4">
-              <p className="text-sm text-gray-600 mb-4">Latest registrations and case updates</p>
-              <DataTable
-                data={stats?.recent_activity || []}
-                columns={[
-                  {
-                    key: 'user',
-                    label: 'User',
-                    render: (item) => (
-                      <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-medium text-sm">
-                          {item.user?.name?.charAt(0).toUpperCase() || 'U'}
-                        </div>
-                        <span className="font-medium">{item.user?.name || 'Unknown'}</span>
-                      </div>
-                    ),
-                  },
-                  {
-                    key: 'module',
-                    label: 'Type',
-                    render: (item) => {
-                      const moduleConfig: Record<string, { variant: 'default' | 'success' | 'warning' | 'danger' | 'info'; label: string }> = {
-                        cases: { variant: 'info', label: 'Case' },
-                        referrals: { variant: 'warning', label: 'Referral' },
-                        registrations: { variant: 'success', label: 'Registration' },
-                        users: { variant: 'default', label: 'User' },
-                      };
-                      const config = moduleConfig[item.module] || { variant: 'default', label: item.module };
-                      return <Badge variant={config.variant}>{config.label}</Badge>;
-                    },
-                  },
-                  {
-                    key: 'description',
-                    label: 'Activity',
-                    render: (item) => {
-                      const caseNumber = item.metadata?.case_number;
-                      const referralNumber = item.metadata?.referral_number;
-                      const fullName = item.metadata?.full_name;
-
-                      let resourceInfo = '';
-                      if (caseNumber) {
-                        resourceInfo = ` [${caseNumber}]`;
-                      } else if (referralNumber) {
-                        resourceInfo = ` [${referralNumber}]`;
-                      } else if (fullName) {
-                        resourceInfo = ` [${fullName}]`;
-                      }
-
-                      return (
-                        <div>
-                          <div className="font-medium text-gray-900">{item.description}</div>
-                          {resourceInfo && (
-                            <div className="text-xs text-blue-600 font-mono mt-1">{resourceInfo}</div>
-                          )}
-                        </div>
-                      );
-                    },
-                  },
-                  {
-                    key: 'created_at',
-                    label: 'Time',
-                    render: (item) => {
-                      const date = new Date(item.created_at);
-                      const now = new Date();
-                      const diff = Math.floor((now.getTime() - date.getTime()) / 1000 / 60);
-                      if (diff < 60) return `${diff}m ago`;
-                      if (diff < 1440) return `${Math.floor(diff / 60)}h ago`;
-                      return date.toLocaleDateString();
-                    },
-                  },
-                ]}
-                emptyState={
-                  <div className="text-center py-12 text-gray-500">
-                    <FileText className="w-12 h-12 mx-auto mb-3 text-gray-300" />
-                    <p>No recent activity</p>
-                  </div>
-                }
-              />
-            </div>
-          </Card>
-
-          <div className="space-y-6">
+        <div className="space-y-6">
             <Card title="Quick Actions" className="shadow-lg">
               <div className="p-4 space-y-3">
                 <p className="text-sm text-gray-600 mb-4">Frequently used features</p>
@@ -497,7 +410,6 @@ export const DashboardPage = () => {
               </div>
             </Card>
           </div>
-        </div>
       </div>
     </MainLayout>
   );

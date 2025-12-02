@@ -10,8 +10,16 @@ import {
   ForgotPasswordPage,
   WelcomePage,
   DashboardPage,
+  LearnMorePage,
 } from './pages';
 import { ResetPasswordPage } from './pages/auth';
+import { CasesListPage, CaseDetailPage, CaseFormPage } from './pages/cases';
+import { ReferralsPage } from './pages/referrals';
+import { RegistrationsPage } from './pages/registrations';
+import { UsersListPage, UserDetailPage, UserFormPage } from './pages/users';
+import { ReportsPage } from './pages/reports';
+import { SettingsPage } from './pages/settings';
+import { AdminDashboardPage } from './pages/admin';
 
 function App() {
   return (
@@ -21,6 +29,7 @@ function App() {
           <Router>
             <Routes>
               <Route path="/" element={<WelcomePage />} />
+              <Route path="/learn-more" element={<LearnMorePage />} />
               <Route path="/login" element={<LoginPage />} />
               <Route path="/signup" element={<SignupPage />} />
               <Route path="/forgot-password" element={<ForgotPasswordPage />} />
@@ -31,6 +40,117 @@ function App() {
                 element={
                   <ProtectedRoute>
                     <DashboardPage />
+                  </ProtectedRoute>
+                }
+              />
+
+              <Route
+                path="/cases"
+                element={
+                  <ProtectedRoute>
+                    <CasesListPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/cases/create"
+                element={
+                  <ProtectedRoute>
+                    <CaseFormPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/cases/edit/:id"
+                element={
+                  <ProtectedRoute>
+                    <CaseFormPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/cases/:id"
+                element={
+                  <ProtectedRoute>
+                    <CaseDetailPage />
+                  </ProtectedRoute>
+                }
+              />
+
+              <Route
+                path="/referrals"
+                element={
+                  <ProtectedRoute>
+                    <ReferralsPage />
+                  </ProtectedRoute>
+                }
+              />
+
+              <Route
+                path="/registrations"
+                element={
+                  <ProtectedRoute>
+                    <RegistrationsPage />
+                  </ProtectedRoute>
+                }
+              />
+
+              <Route
+                path="/users"
+                element={
+                  <ProtectedRoute>
+                    <UsersListPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/users/create"
+                element={
+                  <ProtectedRoute>
+                    <UserFormPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/users/edit/:id"
+                element={
+                  <ProtectedRoute>
+                    <UserFormPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/users/:id"
+                element={
+                  <ProtectedRoute>
+                    <UserDetailPage />
+                  </ProtectedRoute>
+                }
+              />
+
+              <Route
+                path="/reports"
+                element={
+                  <ProtectedRoute>
+                    <ReportsPage />
+                  </ProtectedRoute>
+                }
+              />
+
+              <Route
+                path="/settings"
+                element={
+                  <ProtectedRoute>
+                    <SettingsPage />
+                  </ProtectedRoute>
+                }
+              />
+
+              <Route
+                path="/admin"
+                element={
+                  <ProtectedRoute>
+                    <AdminDashboardPage />
                   </ProtectedRoute>
                 }
               />

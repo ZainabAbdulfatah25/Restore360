@@ -51,7 +51,10 @@ export const WelcomePage = () => {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8 px-4">
-            <div className="glass-effect rounded-3xl p-6 sm:p-8 card-hover group">
+            <div
+              onClick={() => navigate('/learn-more')}
+              className="glass-effect rounded-3xl p-6 sm:p-8 card-hover group cursor-pointer"
+            >
               <div className="w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-blue-400 to-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-4 sm:mb-6 group-hover:rotate-6 transition-transform">
                 <Users className="w-8 h-8 sm:w-10 sm:h-10 text-white" />
               </div>
@@ -65,7 +68,10 @@ export const WelcomePage = () => {
               </div>
             </div>
 
-            <div className="glass-effect rounded-3xl p-6 sm:p-8 card-hover group">
+            <div
+              onClick={() => navigate('/learn-more')}
+              className="glass-effect rounded-3xl p-6 sm:p-8 card-hover group cursor-pointer"
+            >
               <div className="w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-green-400 to-green-600 rounded-2xl flex items-center justify-center mx-auto mb-4 sm:mb-6 group-hover:rotate-6 transition-transform">
                 <FileText className="w-8 h-8 sm:w-10 sm:h-10 text-white" />
               </div>
@@ -79,7 +85,10 @@ export const WelcomePage = () => {
               </div>
             </div>
 
-            <div className="glass-effect rounded-3xl p-6 sm:p-8 card-hover group sm:col-span-2 lg:col-span-1">
+            <div
+              onClick={() => navigate('/learn-more')}
+              className="glass-effect rounded-3xl p-6 sm:p-8 card-hover group cursor-pointer sm:col-span-2 lg:col-span-1"
+            >
               <div className="w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-teal-400 to-cyan-600 rounded-2xl flex items-center justify-center mx-auto mb-4 sm:mb-6 group-hover:rotate-6 transition-transform">
                 <BarChart3 className="w-8 h-8 sm:w-10 sm:h-10 text-white" />
               </div>
