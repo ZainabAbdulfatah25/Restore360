@@ -51,6 +51,7 @@ export const referralsApi = {
       referral_number: referralNumber,
       status: referralData.status || 'pending',
       priority: referralData.priority || 'medium',
+      referred_from: referralData.referred_from || 'Internal',
     };
 
     if (user?.user) {

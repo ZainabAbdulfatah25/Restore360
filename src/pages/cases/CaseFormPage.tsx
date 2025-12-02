@@ -80,13 +80,18 @@ export const CaseFormPage = () => {
       setError('');
       setSuccess('');
 
+      const submitData = {
+        ...data,
+        assigned_to: data.assigned_to && data.assigned_to !== '' ? data.assigned_to : undefined
+      };
+
       if (isEdit && id) {
-        await casesApi.updateCase(id, data);
+        await casesApi.updateCase(id, submitData);
         await track('update', 'cases', `Updated case: ${data.title}`, { case_id: id });
         setSuccess('Case updated successfully!');
         setTimeout(() => navigate('/cases'), 1500);
       } else {
-        const newCase = await casesApi.createCase(data);
+        const newCase = await casesApi.createCase(submitData);
         await track('create', 'cases', `Created case: ${data.title}`, {
           case_id: newCase.id,
           case_number: newCase.case_number,
@@ -193,20 +198,18 @@ export const CaseFormPage = () => {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Assign To Authority/Organization (Optional)
+                Assign To User (Optional)
               </label>
               <select
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 {...register('assigned_to')}
               >
                 <option value="">Unassigned</option>
-                <optgroup label="Organizations">
-                  {organizations.map((org) => (
-                    <option key={org.id} value={org.name}>
-                      {org.name} ({org.type})
-                    </option>
-                  ))}
-                </optgroup>
+                {users.map((user) => (
+                  <option key={user.id} value={user.id}>
+                    {user.name} ({user.role})
+                  </option>
+                ))}
               </select>
             </div>
 
