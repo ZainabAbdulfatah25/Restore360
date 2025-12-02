@@ -36,12 +36,12 @@ export const LoginPage = () => {
 
   return (
     <AuthLayout>
-      <div className="bg-white rounded-2xl shadow-xl p-6 sm:p-8">
+      <div className="bg-white rounded-2xl shadow-2xl p-6 sm:p-8 animate-scale-in">
         <div className="text-center mb-6">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-100 rounded-full mb-4">
-            <Shield className="w-8 h-8 text-blue-600" />
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-primary-100 to-accent-100 rounded-2xl mb-4 shadow-md">
+            <Shield className="w-8 h-8 text-primary-600" />
           </div>
-          <h2 className="text-2xl font-bold text-gray-900">Welcome Back</h2>
+          <h2 className="text-2xl font-bold bg-gradient-to-r from-primary-600 to-accent-600 bg-clip-text text-transparent">Welcome Back</h2>
           <p className="text-gray-600 text-sm mt-2">Sign in to your account</p>
         </div>
 
@@ -86,7 +86,7 @@ export const LoginPage = () => {
               <button
                 type="button"
                 onClick={() => navigate('/forgot-password')}
-                className="text-sm text-blue-600 hover:text-blue-700 hover:underline"
+                className="text-sm text-primary-600 hover:text-primary-700 hover:underline transition-colors"
               >
                 Forgot password?
               </button>
@@ -102,7 +102,7 @@ export const LoginPage = () => {
             <button
               type="button"
               onClick={() => navigate('/signup')}
-              className="text-blue-600 hover:text-blue-700 font-medium hover:underline"
+              className="text-primary-600 hover:text-primary-700 font-medium hover:underline transition-colors"
             >
               Sign Up
             </button>

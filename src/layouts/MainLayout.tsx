@@ -52,13 +52,13 @@ export const MainLayout = ({ children }: MainLayoutProps) => {
   });
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="lg:hidden fixed top-0 left-0 right-0 z-40 bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-primary-50/20">
+      <div className="lg:hidden fixed top-0 left-0 right-0 z-40 bg-gradient-to-r from-primary-600 to-accent-600 shadow-lg px-4 py-3 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <FolderOpen className="w-6 h-6 text-blue-600" />
-          <span className="text-lg font-bold text-gray-900">Restore 360</span>
+          <FolderOpen className="w-6 h-6 text-white" />
+          <span className="text-lg font-bold text-white">Restore 360</span>
         </div>
-        <button onClick={() => setSidebarOpen(!sidebarOpen)} className="text-gray-600">
+        <button onClick={() => setSidebarOpen(!sidebarOpen)} className="text-white hover:bg-white/10 rounded-lg p-2 transition-colors">
           {sidebarOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
         </button>
       </div>
@@ -69,9 +69,9 @@ export const MainLayout = ({ children }: MainLayoutProps) => {
         }`}
       >
         <div className="flex flex-col h-full">
-          <div className="hidden lg:flex items-center gap-2 px-6 py-4 border-b border-gray-200">
-            <FolderOpen className="w-6 h-6 text-blue-600" />
-            <span className="text-lg font-bold text-gray-900">{t('app.name')}</span>
+          <div className="hidden lg:flex items-center gap-2 px-6 py-5 bg-gradient-to-r from-primary-600 to-accent-600">
+            <FolderOpen className="w-7 h-7 text-white" />
+            <span className="text-xl font-bold text-white">{t('app.name')}</span>
           </div>
 
           <nav className="flex-1 px-4 py-4 space-y-1 overflow-y-auto">
@@ -82,10 +82,10 @@ export const MainLayout = ({ children }: MainLayoutProps) => {
                   key={item.name}
                   to={item.href}
                   onClick={() => setSidebarOpen(false)}
-                  className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 ${
                     isActive
-                      ? 'bg-blue-50 text-blue-700'
-                      : 'text-gray-700 hover:bg-gray-100'
+                      ? 'bg-gradient-to-r from-primary-500 to-accent-500 text-white shadow-md transform scale-105'
+                      : 'text-gray-700 hover:bg-gray-100 hover:translate-x-1'
                   }`}
                 >
                   <item.icon className="w-5 h-5" />
@@ -96,8 +96,8 @@ export const MainLayout = ({ children }: MainLayoutProps) => {
           </nav>
 
           <div className="p-4 border-t border-gray-200">
-            <div className="flex items-center gap-3 px-3 py-2 mb-2">
-              <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white font-medium">
+            <div className="flex items-center gap-3 px-3 py-3 mb-2 bg-gradient-to-br from-primary-50 to-accent-50 rounded-xl">
+              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-600 to-accent-600 flex items-center justify-center text-white font-bold shadow-md">
                 {user?.name.charAt(0).toUpperCase()}
               </div>
               <div className="flex-1 min-w-0">

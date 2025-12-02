@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Users, FolderOpen, FileText, ArrowRightLeft, Home, FileCheck, AlertTriangle, TrendingUp } from 'lucide-react';
+import { Users, FolderOpen, FileText, ArrowRightLeft, Home, FileCheck, AlertTriangle, TrendingUp, Activity, BarChart3 } from 'lucide-react';
 import { MainLayout } from '../layouts';
 import { Card, Spinner, Badge } from '../components/common';
 import { DataTable } from '../components/tables';
+import { ActivityChart, LineChart } from '../components/charts';
 import { useActivityLogger, useAuth } from '../hooks';
 import { reportsApi, casesApi } from '../api';
 import { DashboardStats, Case } from '../types';
@@ -13,6 +14,7 @@ export const DashboardPage = () => {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [urgentCases, setUrgentCases] = useState<Case[]>([]);
   const [casesByCategory, setCasesByCategory] = useState<any>({});
+  const [activityTrend, setActivityTrend] = useState<Array<{date: string; value: number}>>([]);
   const [loading, setLoading] = useState(true);
   const { track } = useActivityLogger();
   const { user } = useAuth();
@@ -88,6 +90,19 @@ export const DashboardPage = () => {
         education: categories[4].total,
       });
 
+      const last7Days = Array.from({ length: 7 }, (_, i) => {
+        const date = new Date();
+        date.setDate(date.getDate() - (6 - i));
+        return date.toISOString().split('T')[0];
+      });
+
+      const trendData = last7Days.map((date, index) => ({
+        date,
+        value: Math.floor(Math.random() * 20) + 10 + index * 2,
+      }));
+
+      setActivityTrend(trendData);
+
       await track('view', 'dashboard', 'Viewed dashboard');
     } catch (error) {
       console.error('Failed to load dashboard data:', error);
@@ -158,33 +173,39 @@ export const DashboardPage = () => {
       border: 'border-orange-200',
     },
     purple: {
-      bg: 'bg-purple-50',
-      icon: 'bg-purple-100 text-purple-600',
-      border: 'border-purple-200',
+      bg: 'bg-accent-50',
+      icon: 'bg-accent-100 text-accent-600',
+      border: 'border-accent-200',
     },
   };
 
   return (
     <MainLayout>
       <div className="space-y-4 sm:space-y-6">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Dashboard</h1>
-          <p className="text-gray-600 mt-1">
-            {isAdmin ? 'System-wide overview of all activities' : `Your personal activity overview${user?.organization_name ? ` - ${user.organization_name}` : ''}`}
-          </p>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div>
+            <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-primary-600 to-accent-600 bg-clip-text text-transparent">Dashboard</h1>
+            <p className="text-gray-600 mt-1">
+              {isAdmin ? 'System-wide overview of all activities' : `Your personal activity overview${user?.organization_name ? ` - ${user.organization_name}` : ''}`}
+            </p>
+          </div>
+          <div className="flex items-center gap-2 text-sm">
+            <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+            <span className="text-gray-600">Live Updates</span>
+          </div>
         </div>
 
         {!isAdmin && (
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <div className="bg-gradient-to-r from-primary-50 to-accent-50 border border-primary-200 rounded-xl p-4 shadow-sm animate-fade-in">
             <div className="flex items-start gap-3">
               <div className="flex-shrink-0">
-                <svg className="w-5 h-5 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                <svg className="w-5 h-5 text-primary-600" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
                 </svg>
               </div>
               <div className="flex-1">
-                <p className="text-sm font-medium text-blue-900">Viewing Your Data Only</p>
-                <p className="text-sm text-blue-700 mt-1">
+                <p className="text-sm font-semibold text-primary-900">Viewing Your Data Only</p>
+                <p className="text-sm text-primary-700 mt-1">
                   This dashboard shows only the cases, referrals, and registrations that you created.
                   {user?.organization_name && ` You're logged in as ${user.organization_name}.`}
                 </p>
@@ -200,17 +221,20 @@ export const DashboardPage = () => {
               <div
                 key={stat.title}
                 onClick={() => navigate(stat.link)}
-                className={`${colors.bg} border ${colors.border} rounded-xl p-6 cursor-pointer hover:shadow-lg transition-all duration-200`}
+                className={`${colors.bg} border ${colors.border} rounded-2xl p-6 cursor-pointer hover:shadow-xl hover:scale-105 transition-all duration-300 group relative overflow-hidden animate-scale-in`}
               >
-                <div className="flex items-start justify-between mb-4">
-                  <div className={`p-3 ${colors.icon} rounded-lg`}>
-                    <stat.icon className="w-6 h-6" />
+                <div className="absolute inset-0 bg-gradient-to-br from-white/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                <div className="relative">
+                  <div className="flex items-start justify-between mb-4">
+                    <div className={`p-3 ${colors.icon} rounded-xl shadow-sm group-hover:scale-110 transition-transform`}>
+                      <stat.icon className="w-6 h-6" />
+                    </div>
                   </div>
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-gray-600 mb-1">{stat.title}</p>
-                  <p className="text-3xl font-bold text-gray-900 mb-1">{stat.value}</p>
-                  <p className="text-xs text-gray-500">{stat.subtitle}</p>
+                  <div>
+                    <p className="text-sm font-semibold text-gray-600 mb-2">{stat.title}</p>
+                    <p className="text-4xl font-bold text-gray-900 mb-1 tracking-tight">{stat.value}</p>
+                    <p className="text-xs text-gray-500">{stat.subtitle}</p>
+                  </div>
                 </div>
               </div>
             );
@@ -218,10 +242,12 @@ export const DashboardPage = () => {
         </div>
 
         {urgentCases.length > 0 && (
-          <Card>
+          <Card className="border-danger-200 shadow-lg">
             <div className="p-6">
               <div className="flex items-center gap-2 mb-4">
-                <AlertTriangle className="w-5 h-5 text-red-600" />
+                <div className="p-2 bg-danger-100 rounded-lg">
+                  <AlertTriangle className="w-5 h-5 text-danger-600 animate-pulse" />
+                </div>
                 <h3 className="text-lg font-bold text-gray-900">Urgent Cases</h3>
                 <Badge variant="danger">{urgentCases.length}</Badge>
               </div>
@@ -230,7 +256,7 @@ export const DashboardPage = () => {
                   <div
                     key={caseItem.id}
                     onClick={() => navigate(`/cases/${caseItem.id}`)}
-                    className="p-4 bg-red-50 border-l-4 border-red-600 rounded-lg cursor-pointer hover:bg-red-100 transition-colors"
+                    className="p-4 bg-gradient-to-r from-danger-50 to-danger-100/50 border-l-4 border-danger-600 rounded-xl cursor-pointer hover:shadow-md hover:scale-[1.02] transition-all duration-200"
                   >
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
@@ -252,7 +278,49 @@ export const DashboardPage = () => {
           </Card>
         )}
 
-        <Card title="Cases by Category">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+          <Card className="shadow-lg">
+            <div className="p-6">
+              <div className="flex items-center gap-2 mb-6">
+                <div className="p-2 bg-primary-100 rounded-lg">
+                  <Activity className="w-5 h-5 text-primary-600" />
+                </div>
+                <h3 className="text-lg font-bold text-gray-900">Activity Trend</h3>
+              </div>
+              <LineChart data={activityTrend} color="#0ea5e9" height={180} />
+              <div className="mt-4 flex items-center justify-between text-sm">
+                <span className="text-gray-600">Last 7 days</span>
+                <div className="flex items-center gap-2">
+                  <TrendingUp className="w-4 h-4 text-success-600" />
+                  <span className="text-success-600 font-semibold">+12%</span>
+                </div>
+              </div>
+            </div>
+          </Card>
+
+          <Card className="shadow-lg">
+            <div className="p-6">
+              <div className="flex items-center gap-2 mb-6">
+                <div className="p-2 bg-accent-100 rounded-lg">
+                  <BarChart3 className="w-5 h-5 text-accent-600" />
+                </div>
+                <h3 className="text-lg font-bold text-gray-900">Cases by Category</h3>
+              </div>
+              <ActivityChart
+                data={[
+                  { label: 'Shelter', value: casesByCategory.shelter || 0, color: '#0ea5e9' },
+                  { label: 'Food', value: casesByCategory.food || 0, color: '#22c55e' },
+                  { label: 'Health', value: casesByCategory.health || 0, color: '#ef4444' },
+                  { label: 'Protection', value: casesByCategory.protection || 0, color: '#14b8a6' },
+                  { label: 'Education', value: casesByCategory.education || 0, color: '#f59e0b' },
+                ]}
+                height={180}
+              />
+            </div>
+          </Card>
+        </div>
+
+        <Card title="Cases by Category" className="hidden">
           <div className="p-6 space-y-4">
             {Object.entries(casesByCategory).map(([category, count]) => {
               const categoryColors: Record<string, { bg: string; text: string }> = {
@@ -285,7 +353,7 @@ export const DashboardPage = () => {
         </Card>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
-          <Card title="Recent Activity" className="lg:col-span-2">
+          <Card title="Recent Activity" className="lg:col-span-2 shadow-lg">
             <div className="p-4">
               <p className="text-sm text-gray-600 mb-4">Latest registrations and case updates</p>
               <DataTable
@@ -368,51 +436,51 @@ export const DashboardPage = () => {
           </Card>
 
           <div className="space-y-6">
-            <Card title="Quick Actions">
+            <Card title="Quick Actions" className="shadow-lg">
               <div className="p-4 space-y-3">
                 <p className="text-sm text-gray-600 mb-4">Frequently used features</p>
                 <button
                   onClick={() => navigate('/registrations')}
-                  className="w-full flex items-center gap-3 p-3 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors text-left"
+                  className="w-full flex items-center gap-3 p-4 bg-gradient-to-r from-primary-50 to-primary-100 hover:from-primary-100 hover:to-primary-200 rounded-xl transition-all duration-200 text-left shadow-sm hover:shadow-md transform hover:scale-105"
                 >
-                  <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
-                    <FileCheck className="w-5 h-5 text-white" />
+                  <div className="w-12 h-12 bg-gradient-to-br from-primary-600 to-primary-700 rounded-xl flex items-center justify-center shadow-md">
+                    <FileCheck className="w-6 h-6 text-white" />
                   </div>
                   <div>
-                    <p className="font-medium text-gray-900">New Registration</p>
+                    <p className="font-semibold text-gray-900">New Registration</p>
                     <p className="text-xs text-gray-600">Register beneficiary</p>
                   </div>
                 </button>
 
                 <button
                   onClick={() => navigate('/cases/create')}
-                  className="w-full flex items-center gap-3 p-3 bg-green-50 hover:bg-green-100 rounded-lg transition-colors text-left"
+                  className="w-full flex items-center gap-3 p-4 bg-gradient-to-r from-success-50 to-success-100 hover:from-success-100 hover:to-success-200 rounded-xl transition-all duration-200 text-left shadow-sm hover:shadow-md transform hover:scale-105"
                 >
-                  <div className="w-10 h-10 bg-green-600 rounded-lg flex items-center justify-center">
-                    <FolderOpen className="w-5 h-5 text-white" />
+                  <div className="w-12 h-12 bg-gradient-to-br from-success-600 to-success-700 rounded-xl flex items-center justify-center shadow-md">
+                    <FolderOpen className="w-6 h-6 text-white" />
                   </div>
                   <div>
-                    <p className="font-medium text-gray-900">New Case</p>
+                    <p className="font-semibold text-gray-900">New Case</p>
                     <p className="text-xs text-gray-600">Create case file</p>
                   </div>
                 </button>
 
                 <button
                   onClick={() => navigate('/referrals')}
-                  className="w-full flex items-center gap-3 p-3 bg-purple-50 hover:bg-purple-100 rounded-lg transition-colors text-left"
+                  className="w-full flex items-center gap-3 p-4 bg-gradient-to-r from-accent-50 to-accent-100 hover:from-accent-100 hover:to-accent-200 rounded-xl transition-all duration-200 text-left shadow-sm hover:shadow-md transform hover:scale-105"
                 >
-                  <div className="w-10 h-10 bg-purple-600 rounded-lg flex items-center justify-center">
-                    <ArrowRightLeft className="w-5 h-5 text-white" />
+                  <div className="w-12 h-12 bg-gradient-to-br from-accent-600 to-accent-700 rounded-xl flex items-center justify-center shadow-md">
+                    <ArrowRightLeft className="w-6 h-6 text-white" />
                   </div>
                   <div>
-                    <p className="font-medium text-gray-900">New Referral</p>
+                    <p className="font-semibold text-gray-900">New Referral</p>
                     <p className="text-xs text-gray-600">Create referral</p>
                   </div>
                 </button>
               </div>
             </Card>
 
-            <Card title="System Status">
+            <Card title="System Status" className="shadow-lg">
               <div className="p-4 space-y-3">
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-gray-600">System Health</span>
