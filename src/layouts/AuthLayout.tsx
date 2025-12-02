@@ -24,15 +24,15 @@ export const AuthLayout = ({ children }: AuthLayoutProps) => {
               </div>
               <div>
                 <h1 className="text-3xl lg:text-4xl font-bold text-white">ReStore 360</h1>
-                <p className="text-blue-100 text-sm font-medium">Student-Friendly Platform</p>
+                <p className="text-blue-100 text-sm font-medium">IDP Management System</p>
               </div>
             </div>
 
             <h2 className="text-3xl lg:text-4xl xl:text-5xl font-bold text-white mb-4 leading-tight">
-              Empowering Students to Make a Difference
+              Humanitarian Coordination System
             </h2>
             <p className="text-blue-100 text-base lg:text-lg leading-relaxed">
-              Join the movement to support IDPs and Returnees through comprehensive humanitarian coordination
+              Comprehensive platform for managing and coordinating support for IDPs and Returnees
             </p>
           </div>
 

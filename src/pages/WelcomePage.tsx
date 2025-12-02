@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { Shield, ArrowRight, Users, FileText, BarChart3, Heart, Globe, Sparkles } from 'lucide-react';
+import { Shield, ArrowRight, Users, FileText, BarChart3 } from 'lucide-react';
 import { Button } from '../components/common';
 
 export const WelcomePage = () => {
@@ -23,15 +23,10 @@ export const WelcomePage = () => {
               <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold gradient-text animate-fade-in">
                 ReStore 360
               </h1>
-              <div className="flex items-center justify-center gap-2 text-primary-600">
-                <Sparkles className="w-5 h-5 animate-pulse" />
-                <span className="text-sm sm:text-base font-medium">Student-Friendly Platform</span>
-                <Sparkles className="w-5 h-5 animate-pulse" />
-              </div>
             </div>
 
             <p className="text-base sm:text-lg lg:text-xl text-gray-700 max-w-2xl mx-auto leading-relaxed animate-slide-up px-4">
-              Empowering students to make a difference through comprehensive humanitarian coordination for IDPs and Returnees
+              Comprehensive Humanitarian Coordination System for IDPs and Returnees
             </p>
 
             <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center items-center pt-6 sm:pt-8 px-4">
@@ -99,50 +94,6 @@ export const WelcomePage = () => {
             </div>
           </div>
 
-          <div className="mt-12 lg:mt-16 px-4">
-            <div className="glass-effect rounded-3xl p-6 sm:p-8 lg:p-12">
-              <div className="text-center mb-8 sm:mb-10">
-                <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 mb-3 sm:mb-4">
-                  Why Students Choose ReStore 360
-                </h2>
-                <p className="text-sm sm:text-base text-gray-600 max-w-2xl mx-auto">
-                  Built by students, for students who want to make a real impact
-                </p>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-                <div className="flex items-start gap-3 sm:gap-4">
-                  <div className="w-10 h-10 sm:w-12 sm:h-12 bg-primary-100 rounded-xl flex items-center justify-center flex-shrink-0">
-                    <Heart className="w-5 h-5 sm:w-6 sm:h-6 text-primary-600" />
-                  </div>
-                  <div>
-                    <h4 className="font-semibold text-gray-900 mb-1 text-sm sm:text-base">Easy to Use</h4>
-                    <p className="text-xs sm:text-sm text-gray-600">Intuitive interface designed for quick learning</p>
-                  </div>
-                </div>
-
-                <div className="flex items-start gap-3 sm:gap-4">
-                  <div className="w-10 h-10 sm:w-12 sm:h-12 bg-success-100 rounded-xl flex items-center justify-center flex-shrink-0">
-                    <Globe className="w-5 h-5 sm:w-6 sm:h-6 text-success-600" />
-                  </div>
-                  <div>
-                    <h4 className="font-semibold text-gray-900 mb-1 text-sm sm:text-base">Make Impact</h4>
-                    <p className="text-xs sm:text-sm text-gray-600">Help real people and communities in need</p>
-                  </div>
-                </div>
-
-                <div className="flex items-start gap-3 sm:gap-4 sm:col-span-2 lg:col-span-1">
-                  <div className="w-10 h-10 sm:w-12 sm:h-12 bg-accent-100 rounded-xl flex items-center justify-center flex-shrink-0">
-                    <Sparkles className="w-5 h-5 sm:w-6 sm:h-6 text-accent-600" />
-                  </div>
-                  <div>
-                    <h4 className="font-semibold text-gray-900 mb-1 text-sm sm:text-base">Learn & Grow</h4>
-                    <p className="text-xs sm:text-sm text-gray-600">Build valuable skills in humanitarian work</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
         </div>
       </div>
     </div>
