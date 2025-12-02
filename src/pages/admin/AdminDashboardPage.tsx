@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { CheckCircle, XCircle, Clock, Users, Activity } from 'lucide-react';
+import { CheckCircle, XCircle, Clock, Users, Activity, Eye, FolderOpen } from 'lucide-react';
 import { MainLayout } from '../../layouts';
 import { Card, Badge, Button } from '../../components/common';
 import { DataTable } from '../../components/tables';
@@ -29,9 +29,9 @@ export const AdminDashboardPage = () => {
     try {
       setLoading(true);
       const [regs, cases, refs] = await Promise.all([
-        registrationsApi.getRegistrations({ status: 'pending', limit: 50, page: 1 }),
-        casesApi.getCases({ status: 'open', limit: 50, page: 1 }),
-        referralsApi.getReferrals({ status: 'pending', limit: 50, page: 1 }),
+        registrationsApi.getRegistrations({ status: 'pending', limit: 100, page: 1 }),
+        casesApi.getCases({ limit: 100, page: 1 }),
+        referralsApi.getReferrals({ status: 'pending', limit: 100, page: 1 }),
       ]);
       setPendingRegistrations(regs.data);
       setPendingCases(cases.data);
@@ -92,8 +92,8 @@ export const AdminDashboardPage = () => {
     <MainLayout>
       <div className="space-y-6">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
-          <p className="text-gray-600 mt-1">Review and approve pending submissions</p>
+          <h1 className="text-3xl font-bold bg-gradient-to-r from-primary-600 to-accent-600 bg-clip-text text-transparent">Admin Dashboard</h1>
+          <p className="text-gray-600 mt-1">Monitor, approve, and manage all system activities</p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -115,11 +115,14 @@ export const AdminDashboardPage = () => {
             <div className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Open Cases</p>
+                  <p className="text-sm font-medium text-gray-600">Total Cases</p>
                   <p className="text-3xl font-bold text-blue-600 mt-2">{pendingCases.length}</p>
+                  <p className="text-xs text-gray-500 mt-1">
+                    {pendingCases.filter(c => c.status === 'open').length} open
+                  </p>
                 </div>
                 <div className="p-3 bg-blue-100 rounded-lg">
-                  <Activity className="w-6 h-6 text-blue-600" />
+                  <FolderOpen className="w-6 h-6 text-blue-600" />
                 </div>
               </div>
             </div>
@@ -142,9 +145,9 @@ export const AdminDashboardPage = () => {
 
         <div className="flex gap-4 border-b border-gray-200">
           {[
-            { id: 'registrations' as const, label: 'Registrations', count: pendingRegistrations.length },
-            { id: 'cases' as const, label: 'Cases', count: pendingCases.length },
-            { id: 'referrals' as const, label: 'Referrals', count: pendingReferrals.length },
+            { id: 'registrations' as const, label: 'Pending Registrations', count: pendingRegistrations.length },
+            { id: 'cases' as const, label: 'All Cases', count: pendingCases.length },
+            { id: 'referrals' as const, label: 'Pending Referrals', count: pendingReferrals.length },
           ].map((tab) => (
             <button
               key={tab.id}
@@ -221,9 +224,59 @@ export const AdminDashboardPage = () => {
             <DataTable
               data={pendingCases}
               columns={[
-                { key: 'title', label: 'Title' },
-                { key: 'category', label: 'Category' },
-                { key: 'priority', label: 'Priority' },
+                {
+                  key: 'case_number',
+                  label: 'Case #',
+                  render: (c) => (
+                    <span className="font-mono text-sm font-medium text-gray-900">{c.case_number}</span>
+                  ),
+                },
+                {
+                  key: 'title',
+                  label: 'Title',
+                  render: (c) => (
+                    <div>
+                      <p className="font-medium text-gray-900">{c.title}</p>
+                      <p className="text-xs text-gray-500 line-clamp-1">{c.description}</p>
+                    </div>
+                  ),
+                },
+                {
+                  key: 'category',
+                  label: 'Categories',
+                  render: (c) => (
+                    <div className="flex flex-wrap gap-1">
+                      {Array.isArray(c.category) ? (
+                        c.category.map((cat, idx) => (
+                          <span key={idx} className="px-2 py-1 text-xs font-medium bg-blue-100 text-blue-700 rounded capitalize">
+                            {cat}
+                          </span>
+                        ))
+                      ) : (
+                        <span className="px-2 py-1 text-xs font-medium bg-blue-100 text-blue-700 rounded capitalize">
+                          {c.category || 'N/A'}
+                        </span>
+                      )}
+                    </div>
+                  ),
+                },
+                {
+                  key: 'priority',
+                  label: 'Priority',
+                  render: (c) => {
+                    const colors: Record<string, string> = {
+                      low: 'bg-gray-100 text-gray-700',
+                      medium: 'bg-yellow-100 text-yellow-700',
+                      high: 'bg-orange-100 text-orange-700',
+                      urgent: 'bg-red-100 text-red-700',
+                    };
+                    return (
+                      <span className={`px-2 py-1 text-xs font-semibold rounded uppercase ${colors[c.priority] || 'bg-gray-100 text-gray-700'}`}>
+                        {c.priority}
+                      </span>
+                    );
+                  },
+                },
                 {
                   key: 'status',
                   label: 'Status',
@@ -242,19 +295,31 @@ export const AdminDashboardPage = () => {
                       <Button
                         size="sm"
                         variant="secondary"
-                        onClick={() => handleApprove(c.id, 'case')}
+                        onClick={() => navigate(`/cases/${c.id}`)}
+                        title="View Details"
                       >
-                        <CheckCircle className="w-4 h-4 mr-1" />
-                        Start
+                        <Eye className="w-4 h-4" />
                       </Button>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => handleReject(c.id, 'case')}
-                      >
-                        <XCircle className="w-4 h-4 mr-1" />
-                        Close
-                      </Button>
+                      {c.status === 'open' && (
+                        <>
+                          <Button
+                            size="sm"
+                            variant="secondary"
+                            onClick={() => handleApprove(c.id, 'case')}
+                            title="Start Working"
+                          >
+                            <CheckCircle className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => handleReject(c.id, 'case')}
+                            title="Close Case"
+                          >
+                            <XCircle className="w-4 h-4 text-red-600" />
+                          </Button>
+                        </>
+                      )}
                     </div>
                   ),
                 },
@@ -262,7 +327,8 @@ export const AdminDashboardPage = () => {
               loading={loading}
               emptyState={
                 <div className="text-center py-12 text-gray-500">
-                  No open cases
+                  <FolderOpen className="w-12 h-12 mx-auto mb-3 text-gray-400" />
+                  <p>No cases to display</p>
                 </div>
               }
             />

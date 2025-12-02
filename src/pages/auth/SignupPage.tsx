@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
-import { Shield, UserPlus, ArrowLeft, Building, User, Crown } from 'lucide-react';
+import { UserPlus, ArrowLeft, Building, User } from 'lucide-react';
 import { AuthLayout } from '../../layouts';
 import { Button, Input } from '../../components/common';
 import { supabase } from '../../lib/supabase';
@@ -10,7 +10,7 @@ interface SignupFormData {
   email: string;
   password: string;
   confirm_password: string;
-  user_type: 'individual' | 'organization' | 'admin';
+  user_type: 'individual' | 'organization';
   organization_name?: string;
   organization_type?: string;
   full_name?: string;
@@ -20,7 +20,7 @@ interface SignupFormData {
 export const SignupPage = () => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-  const [userType, setUserType] = useState<'individual' | 'organization' | 'admin'>('individual');
+  const [userType, setUserType] = useState<'individual' | 'organization'>('individual');
   const navigate = useNavigate();
   const {
     register,
@@ -65,9 +65,6 @@ export const SignupPage = () => {
 
       if (data.user_type === 'organization') {
         displayName = data.organization_name || displayName;
-      } else if (data.user_type === 'admin') {
-        displayName = data.full_name || displayName;
-        userRole = 'admin';
       } else if (data.user_type === 'individual') {
         displayName = data.full_name || displayName;
       }
@@ -89,18 +86,9 @@ export const SignupPage = () => {
         console.error('Profile creation error:', profileError);
       }
 
-      if (data.user_type === 'admin') {
-        setSuccess('Admin account created! You now have administrative access.');
-        setTimeout(() => {
-          navigate('/login', {
-            state: { message: 'Admin account created successfully! Please sign in.' }
-          });
-        }, 2000);
-      } else {
-        navigate('/login', {
-          state: { message: 'Account created successfully! Please sign in.' }
-        });
-      }
+      navigate('/login', {
+        state: { message: 'Account created successfully! Please sign in.' }
+      });
     } catch (err: any) {
       console.error('Signup error:', err);
       setError(err.message || 'Failed to create account');
@@ -142,7 +130,7 @@ export const SignupPage = () => {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-3 sm:mb-4">Choose Account Type</label>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                 <button
                   type="button"
                   onClick={() => setUserType('individual')}
@@ -175,23 +163,6 @@ export const SignupPage = () => {
                     }`} />
                     <p className="font-semibold text-gray-900 text-sm sm:text-base">Organization</p>
                     <p className="text-xs text-gray-600 mt-1">NGO/Agency</p>
-                  </div>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setUserType('admin')}
-                  className={`p-4 sm:p-5 rounded-2xl border-2 transition-all transform hover:scale-105 ${
-                    userType === 'admin'
-                      ? 'border-accent-500 bg-accent-50 shadow-lg'
-                      : 'border-gray-200 hover:border-accent-300 bg-white'
-                  }`}
-                >
-                  <div className="text-center">
-                    <Crown className={`w-8 h-8 mx-auto mb-2 ${
-                      userType === 'admin' ? 'text-accent-600' : 'text-gray-400'
-                    }`} />
-                    <p className="font-semibold text-gray-900 text-sm sm:text-base">Admin</p>
-                    <p className="text-xs text-gray-600 mt-1">Staff/Coordinator</p>
                   </div>
                 </button>
               </div>
@@ -236,29 +207,6 @@ export const SignupPage = () => {
                 {errors.organization_type && (
                   <p className="mt-1 text-sm text-red-600">{errors.organization_type.message}</p>
                 )}
-              </div>
-            </>
-          )}
-
-          {userType === 'admin' && (
-            <>
-              <Input
-                label="Full Name"
-                placeholder="Enter your full name"
-                error={errors.full_name?.message}
-                {...register('full_name', {
-                  required: userType === 'admin' ? 'Full name is required' : false
-                })}
-              />
-              <Input
-                label="Department"
-                placeholder="e.g., Case Management, Operations"
-                error={errors.department?.message}
-                {...register('department')}
-              />
-              <div className="bg-blue-50 border border-blue-200 text-blue-700 px-4 py-3 rounded-lg text-sm">
-                <p className="font-medium">Admin Account</p>
-                <p className="text-xs mt-1">You will have full administrative access to manage users, approve submissions, and view all data.</p>
               </div>
             </>
           )}
