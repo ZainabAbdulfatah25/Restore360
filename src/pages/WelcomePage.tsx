@@ -1,74 +1,147 @@
 import { useNavigate } from 'react-router-dom';
-import { Shield, ArrowRight } from 'lucide-react';
+import { Shield, ArrowRight, Users, FileText, BarChart3, Heart, Globe, Sparkles } from 'lucide-react';
 import { Button } from '../components/common';
 
 export const WelcomePage = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary-50 via-accent-50 to-primary-100 flex items-center justify-center p-4 sm:p-6">
-      <div className="max-w-2xl w-full text-center space-y-8">
-        <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-primary-600 to-accent-600 rounded-2xl shadow-xl mb-4 animate-scale-in">
-          <Shield className="w-11 h-11 text-white" />
-        </div>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-teal-50 to-cyan-50 illustration-bg relative overflow-hidden">
+      <div className="absolute top-0 left-0 w-full h-full pointer-events-none">
+        <div className="absolute top-20 left-10 w-72 h-72 bg-primary-200/30 rounded-full blur-3xl animate-pulse-slow"></div>
+        <div className="absolute bottom-20 right-10 w-96 h-96 bg-accent-200/30 rounded-full blur-3xl animate-pulse-slow" style={{animationDelay: '1s'}}></div>
+      </div>
 
-        <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold bg-gradient-to-r from-primary-600 to-accent-600 bg-clip-text text-transparent animate-fade-in">
-          ReStore 360
-        </h1>
-
-        <p className="text-lg sm:text-xl text-gray-700 max-w-xl mx-auto leading-relaxed animate-slide-up">
-          Comprehensive Humanitarian Coordination System for IDPs and Returnees
-        </p>
-
-        <div className="flex flex-col sm:flex-row gap-4 justify-center items-center pt-8">
-          <Button
-            onClick={() => navigate('/login')}
-            className="w-full sm:w-auto px-8 py-4 text-lg flex items-center justify-center gap-2"
-            size="lg"
-          >
-            Get Started
-            <ArrowRight className="w-5 h-5" />
-          </Button>
-
-          <Button
-            onClick={() => navigate('/learn-more')}
-            variant="secondary"
-            className="w-full sm:w-auto px-8 py-4 text-lg"
-            size="lg"
-          >
-            Learn More
-          </Button>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-12">
-          <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 border border-primary-200 hover:shadow-xl hover:scale-105 transition-all duration-300 animate-fade-in">
-            <div className="w-12 h-12 bg-gradient-to-br from-primary-100 to-primary-200 rounded-xl flex items-center justify-center mx-auto mb-4">
-              <svg className="w-6 h-6 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-              </svg>
+      <div className="relative z-10 min-h-screen flex items-center justify-center px-4 py-8 sm:px-6 lg:px-8">
+        <div className="max-w-7xl w-full">
+          <div className="text-center space-y-6 mb-12 lg:mb-16">
+            <div className="inline-flex items-center justify-center w-20 h-20 sm:w-24 sm:h-24 bg-gradient-to-br from-primary-500 to-accent-500 rounded-3xl shadow-2xl mb-4 animate-float">
+              <Shield className="w-11 h-11 sm:w-14 sm:h-14 text-white" />
             </div>
-            <h3 className="font-semibold text-gray-900 mb-2">Beneficiary Management</h3>
-            <p className="text-sm text-gray-600">Register and track IDPs and returnees with comprehensive profiling</p>
+
+            <div className="space-y-3 sm:space-y-4">
+              <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold gradient-text animate-fade-in">
+                ReStore 360
+              </h1>
+              <div className="flex items-center justify-center gap-2 text-primary-600">
+                <Sparkles className="w-5 h-5 animate-pulse" />
+                <span className="text-sm sm:text-base font-medium">Student-Friendly Platform</span>
+                <Sparkles className="w-5 h-5 animate-pulse" />
+              </div>
+            </div>
+
+            <p className="text-base sm:text-lg lg:text-xl text-gray-700 max-w-2xl mx-auto leading-relaxed animate-slide-up px-4">
+              Empowering students to make a difference through comprehensive humanitarian coordination for IDPs and Returnees
+            </p>
+
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center items-center pt-6 sm:pt-8 px-4">
+              <Button
+                onClick={() => navigate('/login')}
+                className="w-full sm:w-auto px-6 sm:px-10 py-4 sm:py-5 text-base sm:text-lg font-semibold flex items-center justify-center gap-2 shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all"
+                size="lg"
+              >
+                Get Started
+                <ArrowRight className="w-5 h-5" />
+              </Button>
+
+              <Button
+                onClick={() => navigate('/signup')}
+                variant="secondary"
+                className="w-full sm:w-auto px-6 sm:px-10 py-4 sm:py-5 text-base sm:text-lg font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 transition-all"
+                size="lg"
+              >
+                Sign Up Free
+              </Button>
+            </div>
           </div>
 
-          <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 border border-success-200 hover:shadow-xl hover:scale-105 transition-all duration-300 animate-fade-in" style={{animationDelay: '0.1s'}}>
-            <div className="w-12 h-12 bg-gradient-to-br from-success-100 to-success-200 rounded-xl flex items-center justify-center mx-auto mb-4">
-              <svg className="w-6 h-6 text-success-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-              </svg>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8 px-4">
+            <div className="glass-effect rounded-3xl p-6 sm:p-8 card-hover group">
+              <div className="w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-blue-400 to-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-4 sm:mb-6 group-hover:rotate-6 transition-transform">
+                <Users className="w-8 h-8 sm:w-10 sm:h-10 text-white" />
+              </div>
+              <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-2 sm:mb-3">Beneficiary Management</h3>
+              <p className="text-sm sm:text-base text-gray-600 leading-relaxed">
+                Register and track IDPs and returnees with comprehensive profiling and real-time updates
+              </p>
+              <div className="mt-4 sm:mt-6 flex items-center text-primary-600 text-sm font-medium group-hover:gap-2 transition-all">
+                <span>Learn more</span>
+                <ArrowRight className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity" />
+              </div>
             </div>
-            <h3 className="font-semibold text-gray-900 mb-2">Case Management</h3>
-            <p className="text-sm text-gray-600">Track cases and referrals with full workflow management</p>
+
+            <div className="glass-effect rounded-3xl p-6 sm:p-8 card-hover group">
+              <div className="w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-green-400 to-green-600 rounded-2xl flex items-center justify-center mx-auto mb-4 sm:mb-6 group-hover:rotate-6 transition-transform">
+                <FileText className="w-8 h-8 sm:w-10 sm:h-10 text-white" />
+              </div>
+              <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-2 sm:mb-3">Case Management</h3>
+              <p className="text-sm sm:text-base text-gray-600 leading-relaxed">
+                Track cases and referrals with intelligent workflow management and status updates
+              </p>
+              <div className="mt-4 sm:mt-6 flex items-center text-success-600 text-sm font-medium group-hover:gap-2 transition-all">
+                <span>Learn more</span>
+                <ArrowRight className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity" />
+              </div>
+            </div>
+
+            <div className="glass-effect rounded-3xl p-6 sm:p-8 card-hover group sm:col-span-2 lg:col-span-1">
+              <div className="w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-teal-400 to-cyan-600 rounded-2xl flex items-center justify-center mx-auto mb-4 sm:mb-6 group-hover:rotate-6 transition-transform">
+                <BarChart3 className="w-8 h-8 sm:w-10 sm:h-10 text-white" />
+              </div>
+              <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-2 sm:mb-3">Analytics & Reporting</h3>
+              <p className="text-sm sm:text-base text-gray-600 leading-relaxed">
+                Data-driven insights with real-time analytics for better humanitarian response decisions
+              </p>
+              <div className="mt-4 sm:mt-6 flex items-center text-accent-600 text-sm font-medium group-hover:gap-2 transition-all">
+                <span>Learn more</span>
+                <ArrowRight className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity" />
+              </div>
+            </div>
           </div>
 
-          <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 border border-accent-200 hover:shadow-xl hover:scale-105 transition-all duration-300 animate-fade-in" style={{animationDelay: '0.2s'}}>
-            <div className="w-12 h-12 bg-gradient-to-br from-accent-100 to-accent-200 rounded-xl flex items-center justify-center mx-auto mb-4">
-              <svg className="w-6 h-6 text-accent-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-              </svg>
+          <div className="mt-12 lg:mt-16 px-4">
+            <div className="glass-effect rounded-3xl p-6 sm:p-8 lg:p-12">
+              <div className="text-center mb-8 sm:mb-10">
+                <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 mb-3 sm:mb-4">
+                  Why Students Choose ReStore 360
+                </h2>
+                <p className="text-sm sm:text-base text-gray-600 max-w-2xl mx-auto">
+                  Built by students, for students who want to make a real impact
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+                <div className="flex items-start gap-3 sm:gap-4">
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 bg-primary-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                    <Heart className="w-5 h-5 sm:w-6 sm:h-6 text-primary-600" />
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-gray-900 mb-1 text-sm sm:text-base">Easy to Use</h4>
+                    <p className="text-xs sm:text-sm text-gray-600">Intuitive interface designed for quick learning</p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3 sm:gap-4">
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 bg-success-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                    <Globe className="w-5 h-5 sm:w-6 sm:h-6 text-success-600" />
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-gray-900 mb-1 text-sm sm:text-base">Make Impact</h4>
+                    <p className="text-xs sm:text-sm text-gray-600">Help real people and communities in need</p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3 sm:gap-4 sm:col-span-2 lg:col-span-1">
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 bg-accent-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                    <Sparkles className="w-5 h-5 sm:w-6 sm:h-6 text-accent-600" />
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-gray-900 mb-1 text-sm sm:text-base">Learn & Grow</h4>
+                    <p className="text-xs sm:text-sm text-gray-600">Build valuable skills in humanitarian work</p>
+                  </div>
+                </div>
+              </div>
             </div>
-            <h3 className="font-semibold text-gray-900 mb-2">Analytics & Reporting</h3>
-            <p className="text-sm text-gray-600">Data-driven insights for better humanitarian response</p>
           </div>
         </div>
       </div>

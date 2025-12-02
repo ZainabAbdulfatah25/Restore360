@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
-import { Shield } from 'lucide-react';
+import { Shield, UserPlus, ArrowLeft, Building, User, Crown } from 'lucide-react';
 import { AuthLayout } from '../../layouts';
 import { Button, Input } from '../../components/common';
 import { supabase } from '../../lib/supabase';
@@ -109,16 +109,25 @@ export const SignupPage = () => {
 
   return (
     <AuthLayout>
-      <div className="bg-white rounded-2xl shadow-xl p-6 sm:p-8">
-        <div className="text-center mb-6">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-100 rounded-full mb-4">
-            <Shield className="w-8 h-8 text-blue-600" />
-          </div>
-          <h2 className="text-2xl font-bold text-gray-900">Create Account</h2>
-          <p className="text-gray-600 text-sm mt-2">Choose your account type and get started</p>
-        </div>
+      <div className="w-full max-w-2xl">
+        <button
+          onClick={() => navigate('/')}
+          className="flex items-center gap-2 text-gray-600 hover:text-primary-600 mb-6 sm:mb-8 transition-colors group"
+        >
+          <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+          <span className="text-sm font-medium">Back to Home</span>
+        </button>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+        <div className="glass-effect rounded-3xl p-6 sm:p-10 animate-scale-in">
+          <div className="text-center mb-8">
+            <div className="inline-flex items-center justify-center w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-primary-500 to-accent-500 rounded-3xl mb-4 sm:mb-6 shadow-2xl animate-float">
+              <UserPlus className="w-8 h-8 sm:w-10 sm:h-10 text-white" />
+            </div>
+            <h2 className="text-2xl sm:text-3xl font-bold gradient-text mb-2">Join ReStore 360</h2>
+            <p className="text-gray-600 text-sm sm:text-base">Start making a difference today</p>
+          </div>
+
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
           {error && (
             <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
               {error}
@@ -131,53 +140,62 @@ export const SignupPage = () => {
             </div>
           )}
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-3">Account Type</label>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              <button
-                type="button"
-                onClick={() => setUserType('individual')}
-                className={`p-4 rounded-lg border-2 transition-all ${
-                  userType === 'individual'
-                    ? 'border-blue-600 bg-blue-50'
-                    : 'border-gray-200 hover:border-gray-300'
-                }`}
-              >
-                <div className="text-center">
-                  <p className="font-medium text-gray-900">Individual</p>
-                  <p className="text-xs text-gray-600 mt-1">Personal</p>
-                </div>
-              </button>
-              <button
-                type="button"
-                onClick={() => setUserType('organization')}
-                className={`p-4 rounded-lg border-2 transition-all ${
-                  userType === 'organization'
-                    ? 'border-blue-600 bg-blue-50'
-                    : 'border-gray-200 hover:border-gray-300'
-                }`}
-              >
-                <div className="text-center">
-                  <p className="font-medium text-gray-900">Organization</p>
-                  <p className="text-xs text-gray-600 mt-1">NGO/Agency</p>
-                </div>
-              </button>
-              <button
-                type="button"
-                onClick={() => setUserType('admin')}
-                className={`p-4 rounded-lg border-2 transition-all ${
-                  userType === 'admin'
-                    ? 'border-blue-600 bg-blue-50'
-                    : 'border-gray-200 hover:border-gray-300'
-                }`}
-              >
-                <div className="text-center">
-                  <p className="font-medium text-gray-900">Admin</p>
-                  <p className="text-xs text-gray-600 mt-1">Staff</p>
-                </div>
-              </button>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-3 sm:mb-4">Choose Account Type</label>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+                <button
+                  type="button"
+                  onClick={() => setUserType('individual')}
+                  className={`p-4 sm:p-5 rounded-2xl border-2 transition-all transform hover:scale-105 ${
+                    userType === 'individual'
+                      ? 'border-primary-500 bg-primary-50 shadow-lg'
+                      : 'border-gray-200 hover:border-primary-300 bg-white'
+                  }`}
+                >
+                  <div className="text-center">
+                    <User className={`w-8 h-8 mx-auto mb-2 ${
+                      userType === 'individual' ? 'text-primary-600' : 'text-gray-400'
+                    }`} />
+                    <p className="font-semibold text-gray-900 text-sm sm:text-base">Individual</p>
+                    <p className="text-xs text-gray-600 mt-1">Student/Personal</p>
+                  </div>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setUserType('organization')}
+                  className={`p-4 sm:p-5 rounded-2xl border-2 transition-all transform hover:scale-105 ${
+                    userType === 'organization'
+                      ? 'border-success-500 bg-success-50 shadow-lg'
+                      : 'border-gray-200 hover:border-success-300 bg-white'
+                  }`}
+                >
+                  <div className="text-center">
+                    <Building className={`w-8 h-8 mx-auto mb-2 ${
+                      userType === 'organization' ? 'text-success-600' : 'text-gray-400'
+                    }`} />
+                    <p className="font-semibold text-gray-900 text-sm sm:text-base">Organization</p>
+                    <p className="text-xs text-gray-600 mt-1">NGO/Agency</p>
+                  </div>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setUserType('admin')}
+                  className={`p-4 sm:p-5 rounded-2xl border-2 transition-all transform hover:scale-105 ${
+                    userType === 'admin'
+                      ? 'border-accent-500 bg-accent-50 shadow-lg'
+                      : 'border-gray-200 hover:border-accent-300 bg-white'
+                  }`}
+                >
+                  <div className="text-center">
+                    <Crown className={`w-8 h-8 mx-auto mb-2 ${
+                      userType === 'admin' ? 'text-accent-600' : 'text-gray-400'
+                    }`} />
+                    <p className="font-semibold text-gray-900 text-sm sm:text-base">Admin</p>
+                    <p className="text-xs text-gray-600 mt-1">Staff/Coordinator</p>
+                  </div>
+                </button>
+              </div>
             </div>
-          </div>
 
           {userType === 'individual' && (
             <Input
@@ -284,21 +302,35 @@ export const SignupPage = () => {
             })}
           />
 
-          <Button type="submit" className="w-full" isLoading={isSubmitting}>
-            Sign Up
-          </Button>
-
-          <div className="text-center text-sm">
-            <span className="text-gray-600">Already have an account? </span>
-            <button
-              type="button"
-              onClick={() => navigate('/login')}
-              className="text-blue-600 hover:text-blue-700 font-medium hover:underline"
+            <Button
+              type="submit"
+              className="w-full py-3 sm:py-4 text-base font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 transition-all"
+              isLoading={isSubmitting}
             >
-              Sign In
-            </button>
-          </div>
-        </form>
+              Create Account
+            </Button>
+
+            <div className="relative my-6 sm:my-8">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-gray-200"></div>
+              </div>
+              <div className="relative flex justify-center text-xs sm:text-sm">
+                <span className="px-2 sm:px-4 bg-white text-gray-500 font-medium">Already have an account?</span>
+              </div>
+            </div>
+
+            <div className="text-center">
+              <button
+                type="button"
+                onClick={() => navigate('/login')}
+                className="text-primary-600 hover:text-primary-700 font-semibold text-sm sm:text-base hover:underline transition-colors inline-flex items-center gap-2"
+              >
+                Sign in instead
+                <ArrowLeft className="w-4 h-4 rotate-180" />
+              </button>
+            </div>
+          </form>
+        </div>
       </div>
     </AuthLayout>
   );

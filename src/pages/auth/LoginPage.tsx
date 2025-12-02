@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
-import { Shield } from 'lucide-react';
+import { Shield, LogIn, ArrowLeft } from 'lucide-react';
 import { AuthLayout } from '../../layouts';
 import { Button, Input } from '../../components/common';
 import { useAuth } from '../../hooks';
@@ -36,16 +36,25 @@ export const LoginPage = () => {
 
   return (
     <AuthLayout>
-      <div className="bg-white rounded-2xl shadow-2xl p-6 sm:p-8 animate-scale-in">
-        <div className="text-center mb-6">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-primary-100 to-accent-100 rounded-2xl mb-4 shadow-md">
-            <Shield className="w-8 h-8 text-primary-600" />
-          </div>
-          <h2 className="text-2xl font-bold bg-gradient-to-r from-primary-600 to-accent-600 bg-clip-text text-transparent">Welcome Back</h2>
-          <p className="text-gray-600 text-sm mt-2">Sign in to your account</p>
-        </div>
+      <div className="w-full max-w-md">
+        <button
+          onClick={() => navigate('/')}
+          className="flex items-center gap-2 text-gray-600 hover:text-primary-600 mb-6 sm:mb-8 transition-colors group"
+        >
+          <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+          <span className="text-sm font-medium">Back to Home</span>
+        </button>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+        <div className="glass-effect rounded-3xl p-6 sm:p-10 animate-scale-in">
+          <div className="text-center mb-8">
+            <div className="inline-flex items-center justify-center w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-primary-500 to-accent-500 rounded-3xl mb-4 sm:mb-6 shadow-2xl animate-float">
+              <LogIn className="w-8 h-8 sm:w-10 sm:h-10 text-white" />
+            </div>
+            <h2 className="text-2xl sm:text-3xl font-bold gradient-text mb-2">Welcome Back!</h2>
+            <p className="text-gray-600 text-sm sm:text-base">Sign in to continue your journey</p>
+          </div>
+
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
             {successMessage && (
               <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg text-sm">
                 {successMessage}
@@ -92,21 +101,35 @@ export const LoginPage = () => {
               </button>
             </div>
 
-            <Button type="submit" className="w-full" isLoading={isSubmitting}>
-              Sign In
+            <Button
+              type="submit"
+              className="w-full py-3 sm:py-4 text-base font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 transition-all"
+              isLoading={isSubmitting}
+            >
+              Sign In to Dashboard
             </Button>
           </form>
 
-          <div className="text-center text-sm mt-4">
-            <span className="text-gray-600">Don't have an account? </span>
+          <div className="relative my-6 sm:my-8">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-gray-200"></div>
+            </div>
+            <div className="relative flex justify-center text-xs sm:text-sm">
+              <span className="px-2 sm:px-4 bg-white text-gray-500 font-medium">New to ReStore 360?</span>
+            </div>
+          </div>
+
+          <div className="text-center">
             <button
               type="button"
               onClick={() => navigate('/signup')}
-              className="text-primary-600 hover:text-primary-700 font-medium hover:underline transition-colors"
+              className="text-primary-600 hover:text-primary-700 font-semibold text-sm sm:text-base hover:underline transition-colors inline-flex items-center gap-2"
             >
-              Sign Up
+              Create a free account
+              <ArrowLeft className="w-4 h-4 rotate-180" />
             </button>
           </div>
+        </div>
       </div>
     </AuthLayout>
   );
