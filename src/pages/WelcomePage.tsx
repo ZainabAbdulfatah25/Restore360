@@ -15,7 +15,7 @@ export const WelcomePage = () => {
       <div className="relative z-10 min-h-screen flex items-center justify-center px-4 py-8 sm:px-6 lg:px-8">
         <div className="max-w-7xl w-full">
           <div className="text-center space-y-6 mb-12 lg:mb-16">
-            <div className="inline-flex items-center justify-center w-20 h-20 sm:w-24 sm:h-24 bg-gradient-to-br from-primary-500 to-accent-500 rounded-3xl shadow-2xl mb-4 animate-float">
+            <div className="inline-flex items-center justify-center w-20 h-20 sm:w-24 sm:h-24 bg-gradient-to-br from-primary-500 to-accent-500 rounded-3xl shadow-2xl mb-4">
               <Shield className="w-11 h-11 sm:w-14 sm:h-14 text-white" />
             </div>
 
