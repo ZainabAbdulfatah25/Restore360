@@ -14,7 +14,7 @@ export const DashboardPage = () => {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [urgentCases, setUrgentCases] = useState<Case[]>([]);
   const [casesByCategory, setCasesByCategory] = useState<any>({});
-  const [activityTrend, setActivityTrend] = useState<Array<{date: string; value: number; label: string}>>([]);
+  const [activityTrend, setActivityTrend] = useState<Array<{date: string; cases: number; referrals: number; registrations: number; label: string}>>([]);
   const [loading, setLoading] = useState(true);
   const { track } = useActivityLogger();
   const { user } = useAuth();
@@ -93,7 +93,7 @@ export const DashboardPage = () => {
 
       const { data: activityLogs } = await supabase
         .from('activity_logs')
-        .select('created_at')
+        .select('created_at, module')
         .gte('created_at', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString())
         .order('created_at', { ascending: true });
 
@@ -104,12 +104,19 @@ export const DashboardPage = () => {
       });
 
       const activityByDay = last7Days.map(date => {
-        const count = activityLogs?.filter(log =>
+        const dayLogs = activityLogs?.filter(log =>
           log.created_at.split('T')[0] === date
-        ).length || 0;
+        ) || [];
+
+        const cases = dayLogs.filter(log => log.module === 'cases').length;
+        const referrals = dayLogs.filter(log => log.module === 'referrals').length;
+        const registrations = dayLogs.filter(log => log.module === 'registrations').length;
+
         return {
           date,
-          value: count,
+          cases,
+          referrals,
+          registrations,
           label: new Date(date).toLocaleDateString('en-US', { weekday: 'short' })
         };
       });
@@ -359,19 +366,71 @@ export const DashboardPage = () => {
                   </div>
                 </div>
                 <p className="text-sm text-gray-600 mb-4">Real-time user activity over the last 7 days</p>
-                <ActivityChart
-                  data={activityTrend.map((item, index) => ({
-                    label: item.label,
-                    value: item.value,
-                    color: index % 2 === 0 ? '#0ea5e9' : '#06b6d4',
-                  }))}
-                  height={180}
-                />
-                <div className="mt-4 flex items-center justify-between text-sm">
-                  <span className="text-gray-600">Last 7 days</span>
-                  <span className="text-gray-900 font-medium">
-                    Total: {activityTrend.reduce((sum, item) => sum + item.value, 0)} activities
-                  </span>
+
+                <div className="space-y-3">
+                  {activityTrend.map((day, index) => {
+                    const total = day.cases + day.referrals + day.registrations;
+                    return (
+                      <div key={index}>
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="text-sm font-medium text-gray-700">{day.label}</span>
+                          <span className="text-sm font-bold text-gray-900">{total}</span>
+                        </div>
+                        <div className="flex w-full h-8 rounded-lg overflow-hidden bg-gray-200">
+                          {day.cases > 0 && (
+                            <div
+                              className="bg-blue-500 flex items-center justify-center text-xs text-white font-medium"
+                              style={{ width: `${(day.cases / Math.max(total, 1)) * 100}%` }}
+                              title={`Cases: ${day.cases}`}
+                            >
+                              {day.cases > 0 && day.cases}
+                            </div>
+                          )}
+                          {day.referrals > 0 && (
+                            <div
+                              className="bg-teal-500 flex items-center justify-center text-xs text-white font-medium"
+                              style={{ width: `${(day.referrals / Math.max(total, 1)) * 100}%` }}
+                              title={`Referrals: ${day.referrals}`}
+                            >
+                              {day.referrals > 0 && day.referrals}
+                            </div>
+                          )}
+                          {day.registrations > 0 && (
+                            <div
+                              className="bg-green-500 flex items-center justify-center text-xs text-white font-medium"
+                              style={{ width: `${(day.registrations / Math.max(total, 1)) * 100}%` }}
+                              title={`Registrations: ${day.registrations}`}
+                            >
+                              {day.registrations > 0 && day.registrations}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                <div className="mt-4 pt-4 border-t border-gray-200">
+                  <div className="flex items-center justify-between text-sm mb-3">
+                    <span className="text-gray-600">Last 7 days</span>
+                    <span className="text-gray-900 font-medium">
+                      Total: {activityTrend.reduce((sum, item) => sum + item.cases + item.referrals + item.registrations, 0)} activities
+                    </span>
+                  </div>
+                  <div className="flex gap-4 flex-wrap">
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 rounded bg-blue-500"></div>
+                      <span className="text-xs text-gray-600">Cases ({activityTrend.reduce((sum, item) => sum + item.cases, 0)})</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 rounded bg-teal-500"></div>
+                      <span className="text-xs text-gray-600">Referrals ({activityTrend.reduce((sum, item) => sum + item.referrals, 0)})</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 rounded bg-green-500"></div>
+                      <span className="text-xs text-gray-600">Registrations ({activityTrend.reduce((sum, item) => sum + item.registrations, 0)})</span>
+                    </div>
+                  </div>
                 </div>
               </div>
             </Card>
