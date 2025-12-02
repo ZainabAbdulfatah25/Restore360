@@ -85,7 +85,7 @@ export const ReferralsPage = () => {
   const onSubmit = async (data: ReferralFormData) => {
     try {
       if (editingReferral) {
-        const updated = await referralsApi.updateReferral(editingReferral.id, data);
+        await referralsApi.updateReferral(editingReferral.id, data);
         await track('update', 'referrals', `Updated referral to ${data.referred_to}`, {
           referral_id: editingReferral.id,
           referral_number: editingReferral.referral_number,

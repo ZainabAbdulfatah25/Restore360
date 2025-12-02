@@ -29,9 +29,9 @@ export const AdminDashboardPage = () => {
     try {
       setLoading(true);
       const [regs, cases, refs] = await Promise.all([
-        registrationsApi.getRegistrations({ status: 'pending', limit: 50 }),
-        casesApi.getCases({ status: 'open', limit: 50 }),
-        referralsApi.getReferrals({ status: 'pending', limit: 50 }),
+        registrationsApi.getRegistrations({ status: 'pending', limit: 50, page: 1 }),
+        casesApi.getCases({ status: 'open', limit: 50, page: 1 }),
+        referralsApi.getReferrals({ status: 'pending', limit: 50, page: 1 }),
       ]);
       setPendingRegistrations(regs.data);
       setPendingCases(cases.data);
@@ -50,7 +50,7 @@ export const AdminDashboardPage = () => {
       } else if (type === 'case') {
         await casesApi.updateStatus(id, 'in_progress');
       } else {
-        await referralsApi.updateStatus(id, 'in_progress');
+        await referralsApi.updateStatus(id, 'accepted');
       }
       loadPendingItems();
     } catch (error) {
@@ -66,7 +66,7 @@ export const AdminDashboardPage = () => {
       } else if (type === 'case') {
         await casesApi.updateStatus(id, 'closed');
       } else {
-        await referralsApi.updateStatus(id, 'cancelled');
+        await referralsApi.updateStatus(id, 'rejected');
       }
       loadPendingItems();
     } catch (error) {

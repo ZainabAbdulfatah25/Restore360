@@ -5,6 +5,7 @@ export interface User {
   role: 'admin' | 'case_worker' | 'field_officer' | 'viewer';
   phone?: string;
   department?: string;
+  organization_name?: string;
   status: 'active' | 'inactive';
   created_at: string;
   updated_at: string;
@@ -17,6 +18,7 @@ export interface Case {
   description: string;
   status: 'open' | 'in_progress' | 'closed' | 'pending';
   priority: 'low' | 'medium' | 'high' | 'urgent';
+  category?: string;
   assigned_to?: string;
   assigned_user?: User;
   created_by: string;
@@ -46,6 +48,7 @@ export interface Registration {
   description: string;
   attachments?: Attachment[];
   status: 'pending' | 'approved' | 'rejected';
+  created_by?: string;
   created_at: string;
   updated_at: string;
 }
@@ -61,14 +64,31 @@ export interface Attachment {
 
 export interface Referral {
   id: string;
+  referral_number?: string;
   case_id?: string;
   referred_from: string;
   referred_to: string;
   from_user?: User;
   to_user?: User;
+  client_name?: string;
+  client_phone?: string;
+  client_email?: string;
+  category?: string;
+  priority?: 'low' | 'medium' | 'high' | 'urgent';
   reason: string;
   notes?: string;
   status: 'pending' | 'accepted' | 'rejected' | 'completed';
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Organization {
+  id: string;
+  name: string;
+  type?: string;
+  contact_email?: string;
+  contact_phone?: string;
+  address?: string;
   created_at: string;
   updated_at: string;
 }

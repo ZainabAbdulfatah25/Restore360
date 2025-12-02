@@ -10,9 +10,9 @@ import { Case, User } from '../../types';
 type CaseFormData = {
   title: string;
   description: string;
-  category: string;
-  status: string;
-  priority: string;
+  category?: string;
+  status: 'open' | 'in_progress' | 'closed' | 'pending';
+  priority: 'low' | 'medium' | 'high' | 'urgent';
   assigned_to?: string;
 };
 

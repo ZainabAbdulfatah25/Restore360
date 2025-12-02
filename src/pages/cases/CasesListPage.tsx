@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { Plus, Search, Edit, Trash2, AlertTriangle } from 'lucide-react';
 import { MainLayout } from '../../layouts';
 import { Card, Button, Input, Badge, Select, BackToDashboard } from '../../components/common';
-import { DataTable } from '../../components/tables';
 import { useActivityLogger, useAuth } from '../../hooks';
 import { casesApi } from '../../api';
 import { Case } from '../../types';
@@ -216,7 +215,7 @@ export const CasesListPage = () => {
                         )}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <span className="text-sm text-gray-900 capitalize">{c.category}</span>
+                        <span className="text-sm text-gray-900 capitalize">{c.category || 'N/A'}</span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">{getStatusBadge(c.status)}</td>
                       <td className="px-6 py-4 whitespace-nowrap">{getPriorityBadge(c.priority)}</td>

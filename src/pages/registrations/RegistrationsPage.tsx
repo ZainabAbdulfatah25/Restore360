@@ -116,7 +116,7 @@ export const RegistrationsPage = () => {
       });
 
       if (editingId) {
-        const updated = await registrationsApi.updateRegistration(editingId, data);
+        await registrationsApi.updateRegistration(editingId, data);
         await track('update', 'registrations', `Updated household registration for ${data.full_name}`, {
           registration_id: editingId,
           full_name: data.full_name,

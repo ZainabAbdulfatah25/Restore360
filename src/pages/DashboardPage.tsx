@@ -68,18 +68,18 @@ export const DashboardPage = () => {
     try {
       const [dashStats, urgentCasesData] = await Promise.all([
         reportsApi.getDashboardStats(user.id, user.role),
-        casesApi.getCases({ priority: 'urgent', limit: 10 }),
+        casesApi.getCases({ priority: 'urgent', limit: 10, page: 1 }),
       ]);
 
       setStats(dashStats);
       setUrgentCases(urgentCasesData.data);
 
       const categories = await Promise.all([
-        casesApi.getCases({ category: 'shelter', limit: 1 }),
-        casesApi.getCases({ category: 'food', limit: 1 }),
-        casesApi.getCases({ category: 'health', limit: 1 }),
-        casesApi.getCases({ category: 'protection', limit: 1 }),
-        casesApi.getCases({ category: 'education', limit: 1 }),
+        casesApi.getCases({ category: 'shelter', limit: 1, page: 1 }),
+        casesApi.getCases({ category: 'food', limit: 1, page: 1 }),
+        casesApi.getCases({ category: 'health', limit: 1, page: 1 }),
+        casesApi.getCases({ category: 'protection', limit: 1, page: 1 }),
+        casesApi.getCases({ category: 'education', limit: 1, page: 1 }),
       ]);
 
       setCasesByCategory({
