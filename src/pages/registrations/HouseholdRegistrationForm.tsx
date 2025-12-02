@@ -87,7 +87,6 @@ export const HouseholdRegistrationForm = ({ onSuccess, onCancel }: Props) => {
       setError('');
       setSuccess('');
 
-      const { data: user } = await supabase.auth.getUser();
       const generatedQrCode = `HH-${Date.now()}-${Math.random().toString(36).substring(2, 9).toUpperCase()}`;
 
       const householdData: any = {
@@ -102,14 +101,16 @@ export const HouseholdRegistrationForm = ({ onSuccess, onCancel }: Props) => {
         household_size: familyMembers.length + 1,
         qr_code: generatedQrCode,
         status: 'pending',
+        approval_status: 'pending',
       };
 
       if (location) {
         householdData.location = location;
       }
 
-      if (user?.user) {
-        householdData.created_by = user.user.id;
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user?.id) {
+        householdData.created_by = user.id;
       }
 
       const { data: registration, error: regError } = await supabase
@@ -118,9 +119,12 @@ export const HouseholdRegistrationForm = ({ onSuccess, onCancel }: Props) => {
         .select()
         .single();
 
-      if (regError) throw regError;
+      if (regError) {
+        console.error('Registration error details:', regError);
+        throw new Error(regError.message || 'Failed to create registration');
+      }
 
-      if (familyMembers.length > 0) {
+      if (familyMembers.length > 0 && registration?.id) {
         const membersData = familyMembers.map(member => ({
           registration_id: registration.id,
           ...member,
@@ -130,7 +134,9 @@ export const HouseholdRegistrationForm = ({ onSuccess, onCancel }: Props) => {
           .from('household_members')
           .insert(membersData);
 
-        if (membersError) throw membersError;
+        if (membersError) {
+          console.error('Members error:', membersError);
+        }
       }
 
       setQrCode(generatedQrCode);
@@ -138,10 +144,10 @@ export const HouseholdRegistrationForm = ({ onSuccess, onCancel }: Props) => {
 
       setTimeout(() => {
         onSuccess();
-      }, 2000);
+      }, 3000);
     } catch (err: any) {
       console.error('Registration error:', err);
-      setError(err.message || 'Failed to register household');
+      setError(err.message || 'Failed to register household. Please try again.');
     }
   };
 

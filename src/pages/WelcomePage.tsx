@@ -31,21 +31,21 @@ export const WelcomePage = () => {
 
             <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center items-center pt-6 sm:pt-8 px-4">
               <Button
-                onClick={() => navigate('/login')}
+                onClick={() => navigate('/register')}
                 className="w-full sm:w-auto px-6 sm:px-10 py-4 sm:py-5 text-base sm:text-lg font-semibold flex items-center justify-center gap-2 shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all"
                 size="lg"
               >
-                Get Started
+                Register Household
                 <ArrowRight className="w-5 h-5" />
               </Button>
 
               <Button
-                onClick={() => navigate('/signup')}
+                onClick={() => navigate('/login')}
                 variant="secondary"
                 className="w-full sm:w-auto px-6 sm:px-10 py-4 sm:py-5 text-base sm:text-lg font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 transition-all"
                 size="lg"
               >
-                Sign Up Free
+                Login / Staff Access
               </Button>
             </div>
           </div>

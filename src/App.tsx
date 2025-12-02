@@ -11,6 +11,7 @@ import {
   WelcomePage,
   DashboardPage,
   LearnMorePage,
+  PublicRegistrationPage,
 } from './pages';
 import { ResetPasswordPage } from './pages/auth';
 import { CasesListPage, CaseDetailPage, CaseFormPage } from './pages/cases';
@@ -30,6 +31,7 @@ function App() {
             <Routes>
               <Route path="/" element={<WelcomePage />} />
               <Route path="/learn-more" element={<LearnMorePage />} />
+              <Route path="/register" element={<PublicRegistrationPage />} />
               <Route path="/login" element={<LoginPage />} />
               <Route path="/signup" element={<SignupPage />} />
               <Route path="/forgot-password" element={<ForgotPasswordPage />} />
