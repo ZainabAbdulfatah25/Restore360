@@ -14,6 +14,7 @@ type CaseFormData = {
   status: 'open' | 'in_progress' | 'closed' | 'pending';
   priority: 'low' | 'medium' | 'high' | 'urgent';
   assigned_to?: string;
+  assigned_to_type?: string;
 };
 
 export const CaseFormPage = () => {
@@ -80,10 +81,24 @@ export const CaseFormPage = () => {
       setError('');
       setSuccess('');
 
-      const submitData = {
-        ...data,
-        assigned_to: data.assigned_to && data.assigned_to !== '' ? data.assigned_to : undefined
+      const submitData: any = {
+        title: data.title,
+        description: data.description,
+        category: data.category,
+        status: data.status,
+        priority: data.priority,
       };
+
+      if (data.assigned_to && data.assigned_to !== '') {
+        const assignValue = data.assigned_to;
+        submitData.assigned_to = assignValue;
+
+        if (assignValue.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i)) {
+          submitData.assigned_to_type = 'user';
+        } else {
+          submitData.assigned_to_type = 'organization';
+        }
+      }
 
       if (isEdit && id) {
         await casesApi.updateCase(id, submitData);
@@ -198,18 +213,42 @@ export const CaseFormPage = () => {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Assign To User (Optional)
+                Assign to Authorities/Organizations (Optional)
               </label>
               <select
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 {...register('assigned_to')}
               >
                 <option value="">Unassigned</option>
-                {users.map((user) => (
-                  <option key={user.id} value={user.id}>
-                    {user.name} ({user.role})
-                  </option>
-                ))}
+                <optgroup label="Organizations">
+                  {organizations.map((org) => (
+                    <option key={org.id} value={org.name}>
+                      {org.name} - {org.type}
+                    </option>
+                  ))}
+                </optgroup>
+                <optgroup label="Government Agencies">
+                  <option value="Ministry of Health">Ministry of Health</option>
+                  <option value="Ministry of Education">Ministry of Education</option>
+                  <option value="Social Services Department">Social Services Department</option>
+                  <option value="Child Protection Services">Child Protection Services</option>
+                  <option value="Immigration Services">Immigration Services</option>
+                </optgroup>
+                <optgroup label="International Organizations">
+                  <option value="UNHCR">UNHCR</option>
+                  <option value="UNICEF">UNICEF</option>
+                  <option value="WFP">World Food Programme</option>
+                  <option value="WHO">World Health Organization</option>
+                  <option value="IOM">International Organization for Migration</option>
+                  <option value="ICRC">International Committee of the Red Cross (ICRC)</option>
+                </optgroup>
+                <optgroup label="System Users">
+                  {users.map((user) => (
+                    <option key={user.id} value={user.id}>
+                      {user.name} ({user.role})
+                    </option>
+                  ))}
+                </optgroup>
               </select>
             </div>
 

@@ -9,4 +9,5 @@ export { Spinner } from './Spinner';
 export { EmptyState } from './EmptyState';
 export { Breadcrumb } from './Breadcrumb';
 export { WelcomeMessage } from './WelcomeMessage';
+export { QRScanner } from './QRScanner';
 export type { BreadcrumbItem } from './Breadcrumb';
