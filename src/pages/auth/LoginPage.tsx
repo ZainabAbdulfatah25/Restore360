@@ -47,7 +47,7 @@ export const LoginPage = () => {
 
         <div className="glass-effect rounded-3xl p-6 sm:p-10 animate-scale-in">
           <div className="text-center mb-8">
-            <div className="inline-flex items-center justify-center w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-primary-500 to-accent-500 rounded-3xl mb-4 sm:mb-6 shadow-2xl animate-float">
+            <div className="inline-flex items-center justify-center w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-primary-500 to-accent-500 rounded-3xl mb-4 sm:mb-6 shadow-2xl">
               <LogIn className="w-8 h-8 sm:w-10 sm:h-10 text-white" />
             </div>
             <h2 className="text-2xl sm:text-3xl font-bold gradient-text mb-2">Welcome Back</h2>

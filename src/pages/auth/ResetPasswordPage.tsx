@@ -89,7 +89,7 @@ export const ResetPasswordPage = () => {
         <div className="w-full max-w-md">
           <div className="glass-effect rounded-3xl p-6 sm:p-10 animate-scale-in">
             <div className="text-center">
-              <div className="w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-success-500 to-success-600 rounded-3xl flex items-center justify-center mx-auto mb-4 sm:mb-6 shadow-2xl animate-float">
+              <div className="w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-success-500 to-success-600 rounded-3xl flex items-center justify-center mx-auto mb-4 sm:mb-6 shadow-2xl">
                 <CheckCircle className="w-8 h-8 sm:w-10 sm:h-10 text-white" />
               </div>
               <h2 className="text-2xl sm:text-3xl font-bold gradient-text mb-3">Password Reset Successful!</h2>
@@ -117,7 +117,7 @@ export const ResetPasswordPage = () => {
 
         <div className="glass-effect rounded-3xl p-6 sm:p-10 animate-scale-in">
           <div className="text-center mb-8">
-            <div className="inline-flex items-center justify-center w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-primary-500 to-accent-500 rounded-3xl mb-4 sm:mb-6 shadow-2xl animate-float">
+            <div className="inline-flex items-center justify-center w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-primary-500 to-accent-500 rounded-3xl mb-4 sm:mb-6 shadow-2xl">
               <Lock className="w-8 h-8 sm:w-10 sm:h-10 text-white" />
             </div>
             <h2 className="text-2xl sm:text-3xl font-bold gradient-text mb-2">Reset Your Password</h2>
