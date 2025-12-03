@@ -40,9 +40,10 @@ export const UserDetailPage = () => {
       await usersApi.deleteUser(id);
       await track('delete', 'users', `Deleted user: ${user.name}`, { user_id: id });
       navigate('/users');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to delete user:', error);
-      alert('Failed to delete user');
+      const errorMessage = error?.message || 'Failed to delete user. Please try again.';
+      alert(errorMessage);
     }
   };
 

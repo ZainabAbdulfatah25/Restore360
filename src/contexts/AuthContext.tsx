@@ -80,17 +80,21 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         .from('users')
         .select('*')
         .eq('id', userId)
-        .single();
+        .maybeSingle();
 
       if (error) {
         console.error('Error loading user profile:', error);
-        setUser(null);
+        // Don't set user to null if there's an error - keep the session
+        // Only log the error and set loading to false
       } else if (data) {
         setUser(data);
+      } else {
+        // No data found but no error - user might not have a profile yet
+        console.warn('User profile not found for userId:', userId);
       }
     } catch (error) {
       console.error('Error loading user profile:', error);
-      setUser(null);
+      // Don't set user to null on errors - maintain the session
     } finally {
       setLoading(false);
     }
