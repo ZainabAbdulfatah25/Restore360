@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { MainLayout } from '../../layouts';
 import { Card, Button, Input, Select } from '../../components/common';
-import { useActivityLogger } from '../../hooks';
+import { useActivityLogger, useAuth } from '../../hooks';
 import { usersApi } from '../../api';
 import { User } from '../../types';
 
@@ -13,9 +13,11 @@ export const UserFormPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { track } = useActivityLogger();
+  const { user: currentUser } = useAuth();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const isEdit = !!id;
+  const isAdmin = currentUser?.role === 'admin';
 
   const {
     register,
@@ -120,15 +122,29 @@ export const UserFormPage = () => {
 
             <Select
               label="Role"
-              options={[
-                { value: 'admin', label: 'Admin' },
-                { value: 'case_worker', label: 'Case Worker' },
-                { value: 'field_officer', label: 'Field Officer' },
-                { value: 'viewer', label: 'Viewer' },
-              ]}
+              options={
+                isAdmin
+                  ? [
+                      { value: 'admin', label: 'Admin' },
+                      { value: 'organization', label: 'Organization' },
+                      { value: 'case_manager', label: 'Case Manager' },
+                      { value: 'field_worker', label: 'Field Worker' },
+                      { value: 'viewer', label: 'Viewer' },
+                    ]
+                  : [
+                      { value: 'case_manager', label: 'Case Manager' },
+                      { value: 'field_worker', label: 'Field Worker' },
+                      { value: 'viewer', label: 'Viewer' },
+                    ]
+              }
               error={errors.role?.message}
               {...register('role', { required: 'Role is required' })}
             />
+            {!isAdmin && (
+              <p className="text-sm text-gray-500 -mt-2">
+                Only administrators can create admin users
+              </p>
+            )}
 
             <Input
               label="Department"
@@ -137,14 +153,24 @@ export const UserFormPage = () => {
               {...register('department')}
             />
 
+            <Input
+              label="Organization Name"
+              placeholder="e.g., UNHCR, Red Cross, etc."
+              error={errors.organization_name?.message}
+              {...register('organization_name')}
+            />
+
             <Select
-              label="Status"
+              label="Organization Type"
               options={[
-                { value: 'active', label: 'Active' },
-                { value: 'inactive', label: 'Inactive' },
+                { value: '', label: 'Select type...' },
+                { value: 'ngo', label: 'NGO' },
+                { value: 'government', label: 'Government' },
+                { value: 'un_agency', label: 'UN Agency' },
+                { value: 'private', label: 'Private' },
               ]}
-              error={errors.status?.message}
-              {...register('status', { required: 'Status is required' })}
+              error={errors.organization_type?.message}
+              {...register('organization_type')}
             />
 
             <div className="flex gap-3 pt-4">
