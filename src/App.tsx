@@ -114,7 +114,7 @@ function App() {
                 }
               />
               <Route
-                path="/users/edit/:id"
+                path="/users/:id/edit"
                 element={
                   <ProtectedRoute>
                     <UserFormPage />

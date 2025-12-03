@@ -102,14 +102,14 @@ export const usersApi = {
   },
 
   deleteUser: async (id: string): Promise<void> => {
-    // Delete from auth first
-    const { error: authError } = await supabase.auth.admin.deleteUser(id);
+    // Call RPC function to delete user (requires admin permissions)
+    const { error } = await supabase.rpc('admin_delete_user', {
+      user_id: id
+    });
 
-    if (authError) {
-      throw new Error(authError.message);
+    if (error) {
+      throw new Error(error.message);
     }
-
-    // User profile will be deleted via cascade or trigger
   },
 
   changePassword: async (id: string, oldPassword: string, newPassword: string): Promise<{ message: string }> => {
