@@ -55,16 +55,20 @@ export const AdminDashboardPage = () => {
     try {
       setLoading(true);
       const [regs, cases, refs] = await Promise.all([
-        registrationsApi.getRegistrations({ limit: 100, page: 1 }),
-        casesApi.getCases({ limit: 100, page: 1 }),
-        referralsApi.getReferrals({ limit: 100, page: 1 }),
+        registrationsApi.getRegistrations({ limit: 1000, page: 1 }),
+        casesApi.getCases({ limit: 1000, page: 1 }),
+        referralsApi.getReferrals({ limit: 1000, page: 1 }),
       ]);
 
       let filteredRegs = regs.data;
       let filteredCases = cases.data;
       let filteredRefs = refs.data;
 
-      if (userOrganization && user?.role === 'organization') {
+      if (user?.role === 'admin') {
+        filteredRegs = regs.data;
+        filteredCases = cases.data;
+        filteredRefs = refs.data;
+      } else if (userOrganization && user?.role === 'organization') {
         const orgNameLower = userOrganization.toLowerCase();
 
         filteredRegs = regs.data.filter(r => {
@@ -270,10 +274,12 @@ export const AdminDashboardPage = () => {
       <div className="space-y-6">
         <div>
           <h1 className="text-3xl font-bold bg-gradient-to-r from-primary-600 to-accent-600 bg-clip-text text-transparent">
-            {userOrganization ? `${userOrganization} Dashboard` : 'Admin Dashboard'}
+            {user?.role === 'admin' ? 'Admin Dashboard - All System Data' : userOrganization ? `${userOrganization} Dashboard` : 'Admin Dashboard'}
           </h1>
           <p className="text-gray-600 mt-1">
-            Monitor, approve, and manage all system activities
+            {user?.role === 'admin'
+              ? 'View and manage all user inputs across the entire system'
+              : 'Monitor, approve, and manage activities for your organization'}
           </p>
         </div>
 
