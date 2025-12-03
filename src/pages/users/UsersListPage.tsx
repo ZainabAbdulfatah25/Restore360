@@ -69,10 +69,11 @@ export const UsersListPage = () => {
       await track('delete', 'users', `Deleted user: ${userToDelete.name}`, { user_id: userToDelete.id });
       setDeleteModalOpen(false);
       setUserToDelete(null);
-      loadUsers();
-    } catch (error) {
+      await loadUsers();
+    } catch (error: any) {
       console.error('Failed to delete user:', error);
-      alert('Failed to delete user. Please try again.');
+      const errorMessage = error?.message || 'Failed to delete user. Please try again.';
+      alert(errorMessage);
     } finally {
       setDeleting(false);
     }
