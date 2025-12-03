@@ -100,17 +100,38 @@ export const DashboardPage = () => {
         education: categories[4].total,
       });
 
-      let activityQuery = supabase
-        .from('activity_logs')
-        .select('created_at, module')
-        .gte('created_at', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString())
-        .order('created_at', { ascending: true });
+      const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+
+      let casesActivityQuery = supabase
+        .from('cases')
+        .select('created_at')
+        .gte('created_at', sevenDaysAgo);
+
+      let registrationsActivityQuery = supabase
+        .from('registrations')
+        .select('created_at')
+        .gte('created_at', sevenDaysAgo);
+
+      let referralsActivityQuery = supabase
+        .from('referrals')
+        .select('created_at')
+        .gte('created_at', sevenDaysAgo);
 
       if (!canSeeAll) {
-        activityQuery = activityQuery.eq('user_id', user.id);
+        casesActivityQuery = casesActivityQuery.eq('created_by', user.id);
+        registrationsActivityQuery = registrationsActivityQuery.eq('created_by', user.id);
+        referralsActivityQuery = referralsActivityQuery.eq('created_by', user.id);
       }
 
-      const { data: activityLogs } = await activityQuery;
+      const [
+        { data: casesActivity },
+        { data: registrationsActivity },
+        { data: referralsActivity }
+      ] = await Promise.all([
+        casesActivityQuery,
+        registrationsActivityQuery,
+        referralsActivityQuery
+      ]);
 
       const last7Days = Array.from({ length: 7 }, (_, i) => {
         const date = new Date();
@@ -119,13 +140,17 @@ export const DashboardPage = () => {
       });
 
       const activityByDay = last7Days.map(date => {
-        const dayLogs = activityLogs?.filter(log =>
-          log.created_at.split('T')[0] === date
-        ) || [];
+        const cases = casesActivity?.filter(item =>
+          item.created_at.split('T')[0] === date
+        ).length || 0;
 
-        const cases = dayLogs.filter(log => log.module === 'cases').length;
-        const referrals = dayLogs.filter(log => log.module === 'referrals').length;
-        const registrations = dayLogs.filter(log => log.module === 'registrations').length;
+        const referrals = referralsActivity?.filter(item =>
+          item.created_at.split('T')[0] === date
+        ).length || 0;
+
+        const registrations = registrationsActivity?.filter(item =>
+          item.created_at.split('T')[0] === date
+        ).length || 0;
 
         return {
           date,
