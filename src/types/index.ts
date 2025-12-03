@@ -59,6 +59,42 @@ export interface Registration {
   created_by?: string;
   created_at: string;
   updated_at: string;
+  household_size?: number;
+  household_head?: string;
+  qr_code?: string;
+  nationality?: string;
+  ethnicity?: string;
+  religion?: string;
+  marital_status?: string;
+  education_level?: string;
+  occupation?: string;
+  disabilities?: string[];
+  medical_conditions?: string[];
+  emergency_contact_name?: string;
+  emergency_contact_phone?: string;
+  emergency_contact_relationship?: string;
+  displacement_status?: string;
+  displacement_date?: string;
+  place_of_origin?: string;
+  place_of_origin_district?: string;
+  place_of_origin_region?: string;
+  current_location?: string;
+  current_location_district?: string;
+  current_location_region?: string;
+  displacement_reason?: string;
+  displacement_duration?: string;
+  previous_displacements?: Array<{
+    location: string;
+    date: string;
+    duration: string;
+    reason: string;
+  }>;
+  shelter_type?: string;
+  has_documentation?: boolean;
+  documentation_types?: string[];
+  assigned_organization?: string;
+  organization_contact?: string;
+  assignment_date?: string;
 }
 
 export interface Attachment {
