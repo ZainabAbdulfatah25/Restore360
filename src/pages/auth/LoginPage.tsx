@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
-import { Shield, LogIn, ArrowLeft } from 'lucide-react';
+import { Shield, LogIn, ArrowLeft, Eye, EyeOff } from 'lucide-react';
 import { AuthLayout } from '../../layouts';
 import { Button, Input } from '../../components/common';
 import { useAuth } from '../../hooks';
@@ -13,6 +13,7 @@ interface LoginFormData {
 
 export const LoginPage = () => {
   const [error, setError] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
   const { login } = useAuth();
@@ -86,15 +87,29 @@ export const LoginPage = () => {
               })}
             />
 
-            <Input
-              label="Password"
-              type="password"
-              placeholder="Enter your password"
-              error={errors.password?.message}
-              {...register('password', {
-                required: 'Password is required',
-              })}
-            />
+            <div className="relative">
+              <Input
+                label="Password"
+                type={showPassword ? 'text' : 'password'}
+                placeholder="Enter your password"
+                error={errors.password?.message}
+                {...register('password', {
+                  required: 'Password is required',
+                })}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-9 text-gray-500 hover:text-gray-700 transition-colors"
+                aria-label={showPassword ? 'Hide password' : 'Show password'}
+              >
+                {showPassword ? (
+                  <EyeOff className="w-5 h-5" />
+                ) : (
+                  <Eye className="w-5 h-5" />
+                )}
+              </button>
+            </div>
 
             <div className="flex items-center justify-end">
               <button

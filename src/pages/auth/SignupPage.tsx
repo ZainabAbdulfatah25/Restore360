@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
-import { UserPlus, ArrowLeft, Building, User } from 'lucide-react';
+import { UserPlus, ArrowLeft, Building, User, Eye, EyeOff } from 'lucide-react';
 import { AuthLayout } from '../../layouts';
 import { Button, Input } from '../../components/common';
 import { supabase } from '../../lib/supabase';
@@ -20,6 +20,8 @@ interface SignupFormData {
 export const SignupPage = () => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [userType, setUserType] = useState<'individual' | 'organization'>('individual');
   const navigate = useNavigate();
   const {
@@ -227,30 +229,58 @@ export const SignupPage = () => {
             })}
           />
 
-          <Input
-            label="Password"
-            type="password"
-            placeholder="Enter your password"
-            error={errors.password?.message}
-            {...register('password', {
-              required: 'Password is required',
-              minLength: {
-                value: 8,
-                message: 'Password must be at least 8 characters',
-              },
-            })}
-          />
+          <div className="relative">
+            <Input
+              label="Password"
+              type={showPassword ? 'text' : 'password'}
+              placeholder="Enter your password"
+              error={errors.password?.message}
+              {...register('password', {
+                required: 'Password is required',
+                minLength: {
+                  value: 8,
+                  message: 'Password must be at least 8 characters',
+                },
+              })}
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-3 top-9 text-gray-500 hover:text-gray-700 transition-colors"
+              aria-label={showPassword ? 'Hide password' : 'Show password'}
+            >
+              {showPassword ? (
+                <EyeOff className="w-5 h-5" />
+              ) : (
+                <Eye className="w-5 h-5" />
+              )}
+            </button>
+          </div>
 
-          <Input
-            label="Confirm Password"
-            type="password"
-            placeholder="Re-enter your password"
-            error={errors.confirm_password?.message}
-            {...register('confirm_password', {
-              required: 'Please confirm your password',
-              validate: (value) => value === password || 'Passwords do not match',
-            })}
-          />
+          <div className="relative">
+            <Input
+              label="Confirm Password"
+              type={showConfirmPassword ? 'text' : 'password'}
+              placeholder="Re-enter your password"
+              error={errors.confirm_password?.message}
+              {...register('confirm_password', {
+                required: 'Please confirm your password',
+                validate: (value) => value === password || 'Passwords do not match',
+              })}
+            />
+            <button
+              type="button"
+              onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+              className="absolute right-3 top-9 text-gray-500 hover:text-gray-700 transition-colors"
+              aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}
+            >
+              {showConfirmPassword ? (
+                <EyeOff className="w-5 h-5" />
+              ) : (
+                <Eye className="w-5 h-5" />
+              )}
+            </button>
+          </div>
 
             <Button
               type="submit"

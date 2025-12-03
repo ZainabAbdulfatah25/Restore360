@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
-import { Lock, ArrowLeft, CheckCircle } from 'lucide-react';
+import { Lock, ArrowLeft, CheckCircle, Eye, EyeOff } from 'lucide-react';
 import { AuthLayout } from '../../layouts';
 import { Button, Input } from '../../components/common';
 import { supabase } from '../../lib/supabase';
@@ -15,6 +15,8 @@ export const ResetPasswordPage = () => {
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const navigate = useNavigate();
   const {
     register,
@@ -133,34 +135,62 @@ export const ResetPasswordPage = () => {
               </div>
             )}
 
-            <Input
-              label="New Password"
-              type="password"
-              placeholder="Enter your new password"
-              error={errors.password?.message}
-              {...register('password', {
-                required: 'Password is required',
-                minLength: {
-                  value: 8,
-                  message: 'Password must be at least 8 characters',
-                },
-                pattern: {
-                  value: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+$/,
-                  message: 'Password must contain uppercase, lowercase, and a number',
-                },
-              })}
-            />
+            <div className="relative">
+              <Input
+                label="New Password"
+                type={showPassword ? 'text' : 'password'}
+                placeholder="Enter your new password"
+                error={errors.password?.message}
+                {...register('password', {
+                  required: 'Password is required',
+                  minLength: {
+                    value: 8,
+                    message: 'Password must be at least 8 characters',
+                  },
+                  pattern: {
+                    value: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+$/,
+                    message: 'Password must contain uppercase, lowercase, and a number',
+                  },
+                })}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-9 text-gray-500 hover:text-gray-700 transition-colors"
+                aria-label={showPassword ? 'Hide password' : 'Show password'}
+              >
+                {showPassword ? (
+                  <EyeOff className="w-5 h-5" />
+                ) : (
+                  <Eye className="w-5 h-5" />
+                )}
+              </button>
+            </div>
 
-            <Input
-              label="Confirm New Password"
-              type="password"
-              placeholder="Confirm your new password"
-              error={errors.confirmPassword?.message}
-              {...register('confirmPassword', {
-                required: 'Please confirm your password',
-                validate: (value) => value === password || 'Passwords do not match',
-              })}
-            />
+            <div className="relative">
+              <Input
+                label="Confirm New Password"
+                type={showConfirmPassword ? 'text' : 'password'}
+                placeholder="Confirm your new password"
+                error={errors.confirmPassword?.message}
+                {...register('confirmPassword', {
+                  required: 'Please confirm your password',
+                  validate: (value) => value === password || 'Passwords do not match',
+                })}
+              />
+              <button
+                type="button"
+                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                className="absolute right-3 top-9 text-gray-500 hover:text-gray-700 transition-colors"
+                aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}
+              >
+                {showConfirmPassword ? (
+                  <EyeOff className="w-5 h-5" />
+                ) : (
+                  <Eye className="w-5 h-5" />
+                )}
+              </button>
+            </div>
 
             <Button
               type="submit"
