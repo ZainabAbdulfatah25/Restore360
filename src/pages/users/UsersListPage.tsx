@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Search } from 'lucide-react';
+import { Plus, Search, Edit, Trash2, Eye } from 'lucide-react';
 import { MainLayout } from '../../layouts';
-import { Card, Button, Input, Badge } from '../../components/common';
+import { Card, Button, Input, Badge, Modal } from '../../components/common';
 import { DataTable } from '../../components/tables';
 import { useActivityLogger } from '../../hooks';
 import { usersApi } from '../../api';
@@ -14,6 +14,9 @@ export const UsersListPage = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [userToDelete, setUserToDelete] = useState<User | null>(null);
+  const [deleting, setDeleting] = useState(false);
   const navigate = useNavigate();
   const { track } = useActivityLogger();
 
@@ -43,11 +46,46 @@ export const UsersListPage = () => {
   const getRoleBadge = (role: string) => {
     const variants: Record<string, 'default' | 'success' | 'warning' | 'danger'> = {
       admin: 'danger',
-      case_worker: 'success',
-      field_officer: 'warning',
+      organization: 'warning',
+      case_manager: 'success',
+      field_worker: 'success',
       viewer: 'default',
     };
-    return <Badge variant={variants[role] || 'default'}>{role}</Badge>;
+    return <Badge variant={variants[role] || 'default'}>{role.replace('_', ' ')}</Badge>;
+  };
+
+  const handleDeleteClick = (user: User, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setUserToDelete(user);
+    setDeleteModalOpen(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!userToDelete) return;
+
+    try {
+      setDeleting(true);
+      await usersApi.deleteUser(userToDelete.id);
+      await track('delete', 'users', `Deleted user: ${userToDelete.name}`, { user_id: userToDelete.id });
+      setDeleteModalOpen(false);
+      setUserToDelete(null);
+      loadUsers();
+    } catch (error) {
+      console.error('Failed to delete user:', error);
+      alert('Failed to delete user. Please try again.');
+    } finally {
+      setDeleting(false);
+    }
+  };
+
+  const handleEditClick = (userId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    navigate(`/users/${userId}/edit`);
+  };
+
+  const handleViewClick = (userId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    navigate(`/users/${userId}`);
   };
 
   return (
@@ -112,6 +150,35 @@ export const UsersListPage = () => {
                 label: 'Created',
                 render: (user) => new Date(user.created_at).toLocaleDateString(),
               },
+              {
+                key: 'actions',
+                label: 'Actions',
+                render: (user) => (
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={(e) => handleViewClick(user.id, e)}
+                      className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                      title="View Details"
+                    >
+                      <Eye className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={(e) => handleEditClick(user.id, e)}
+                      className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors"
+                      title="Edit User"
+                    >
+                      <Edit className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={(e) => handleDeleteClick(user, e)}
+                      className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                      title="Delete User"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                ),
+              },
             ]}
             loading={loading}
             pagination={{
@@ -126,6 +193,42 @@ export const UsersListPage = () => {
           />
         </Card>
       </div>
+
+      <Modal
+        isOpen={deleteModalOpen}
+        onClose={() => {
+          if (!deleting) {
+            setDeleteModalOpen(false);
+            setUserToDelete(null);
+          }
+        }}
+        title="Delete User"
+      >
+        <div className="space-y-4">
+          <p className="text-gray-700">
+            Are you sure you want to delete <strong>{userToDelete?.name}</strong>? This action cannot be undone.
+          </p>
+          <div className="flex gap-3 justify-end">
+            <Button
+              variant="ghost"
+              onClick={() => {
+                setDeleteModalOpen(false);
+                setUserToDelete(null);
+              }}
+              disabled={deleting}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="danger"
+              onClick={handleConfirmDelete}
+              isLoading={deleting}
+            >
+              Delete User
+            </Button>
+          </div>
+        </div>
+      </Modal>
     </MainLayout>
   );
 };

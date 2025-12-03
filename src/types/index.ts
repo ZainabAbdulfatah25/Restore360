@@ -6,7 +6,10 @@ export interface User {
   phone?: string;
   department?: string;
   organization_name?: string;
+  organization_type?: string;
+  description?: string;
   status: 'active' | 'inactive';
+  password?: string;
   created_at: string;
   updated_at: string;
 }

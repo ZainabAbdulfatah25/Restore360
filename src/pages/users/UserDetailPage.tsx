@@ -93,7 +93,7 @@ export const UserDetailPage = () => {
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <Card title="User Information" className="lg:col-span-2">
-            <div className="p-6 space-y-4">
+            <div className="p-6 space-y-6">
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="text-sm font-medium text-gray-500">Full Name</label>
@@ -124,6 +124,13 @@ export const UserDetailPage = () => {
                   </div>
                 </div>
               </div>
+
+              {user.description && (
+                <div className="pt-4 border-t border-gray-200">
+                  <label className="text-sm font-medium text-gray-500">Description</label>
+                  <p className="text-gray-900 mt-2 whitespace-pre-line">{user.description}</p>
+                </div>
+              )}
             </div>
           </Card>
 
