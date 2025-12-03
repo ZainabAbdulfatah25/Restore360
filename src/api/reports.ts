@@ -3,7 +3,7 @@ import { DashboardStats, ReportData } from '../types';
 
 export const reportsApi = {
   getDashboardStats: async (userId?: string, userRole?: string): Promise<DashboardStats> => {
-    const isAdmin = userRole === 'admin';
+    const isAdmin = userRole === 'admin' || userRole === 'organization';
 
     let casesQuery = supabase.from('cases').select('*', { count: 'exact', head: true });
     let registrationsQuery = supabase.from('registrations').select('*', { count: 'exact', head: true });

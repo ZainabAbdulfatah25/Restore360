@@ -78,18 +78,18 @@ export const DashboardPage = () => {
     try {
       const [dashStats, urgentCasesData] = await Promise.all([
         reportsApi.getDashboardStats(user.id, user.role),
-        casesApi.getCases({ priority: 'urgent', limit: 10, page: 1 }),
+        casesApi.getCases({ priority: 'urgent', limit: 10, page: 1, filterByUser: !canSeeAll }),
       ]);
 
       setStats(dashStats);
       setUrgentCases(urgentCasesData.data);
 
       const categories = await Promise.all([
-        casesApi.getCases({ category: 'shelter', limit: 1, page: 1 }),
-        casesApi.getCases({ category: 'food', limit: 1, page: 1 }),
-        casesApi.getCases({ category: 'health', limit: 1, page: 1 }),
-        casesApi.getCases({ category: 'protection', limit: 1, page: 1 }),
-        casesApi.getCases({ category: 'education', limit: 1, page: 1 }),
+        casesApi.getCases({ category: 'shelter', limit: 1, page: 1, filterByUser: !canSeeAll }),
+        casesApi.getCases({ category: 'food', limit: 1, page: 1, filterByUser: !canSeeAll }),
+        casesApi.getCases({ category: 'health', limit: 1, page: 1, filterByUser: !canSeeAll }),
+        casesApi.getCases({ category: 'protection', limit: 1, page: 1, filterByUser: !canSeeAll }),
+        casesApi.getCases({ category: 'education', limit: 1, page: 1, filterByUser: !canSeeAll }),
       ]);
 
       setCasesByCategory({
@@ -100,11 +100,17 @@ export const DashboardPage = () => {
         education: categories[4].total,
       });
 
-      const { data: activityLogs } = await supabase
+      let activityQuery = supabase
         .from('activity_logs')
         .select('created_at, module')
         .gte('created_at', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString())
         .order('created_at', { ascending: true });
+
+      if (!canSeeAll) {
+        activityQuery = activityQuery.eq('user_id', user.id);
+      }
+
+      const { data: activityLogs } = await activityQuery;
 
       const last7Days = Array.from({ length: 7 }, (_, i) => {
         const date = new Date();
