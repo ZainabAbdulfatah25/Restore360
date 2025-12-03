@@ -27,8 +27,13 @@ export const LoginPage = () => {
   const onSubmit = async (data: LoginFormData) => {
     try {
       setError('');
-      await login(data.email, data.password);
-      navigate('/dashboard');
+      const user = await login(data.email, data.password);
+
+      if (user?.role === 'admin' || user?.role === 'organization') {
+        navigate('/admin');
+      } else {
+        navigate('/dashboard');
+      }
     } catch (err: any) {
       setError(err.message || 'Invalid email or password');
     }

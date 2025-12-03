@@ -16,7 +16,7 @@ interface User {
 interface AuthContextType {
   user: User | null;
   loading: boolean;
-  login: (email: string, password: string) => Promise<void>;
+  login: (email: string, password: string) => Promise<User | null>;
   logout: () => Promise<void>;
   isAuthenticated: boolean;
 }
@@ -96,7 +96,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const login = async (email: string, password: string) => {
+  const login = async (email: string, password: string): Promise<User | null> => {
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
@@ -107,8 +107,24 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
 
     if (data.user) {
-      await loadUserProfile(data.user.id);
+      const { data: userData, error: profileError } = await supabase
+        .from('users')
+        .select('*')
+        .eq('id', data.user.id)
+        .single();
+
+      if (profileError) {
+        console.error('Error loading user profile:', profileError);
+        return null;
+      }
+
+      if (userData) {
+        setUser(userData);
+        return userData;
+      }
     }
+
+    return null;
   };
 
   const logout = async () => {
