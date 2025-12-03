@@ -26,7 +26,7 @@ export const WelcomePage = () => {
             </div>
 
             <p className="text-base sm:text-lg lg:text-xl text-gray-700 max-w-2xl mx-auto leading-relaxed animate-slide-up px-4">
-              Comprehensive Humanitarian Coordination System for IDPs and Returnees
+              Humanitarian Coordination System for IDPs and Returnees
             </p>
 
             <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center items-center pt-6 sm:pt-8 px-4">

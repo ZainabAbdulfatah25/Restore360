@@ -62,6 +62,12 @@ export interface Registration {
   household_size?: number;
   household_head?: string;
   qr_code?: string;
+  photo_url?: string;
+  temporary_restore_id?: string;
+  has_nin?: boolean;
+  nimc_referral_status?: string;
+  alternative_contact?: string;
+  is_head_of_household?: boolean;
   nationality?: string;
   ethnicity?: string;
   religion?: string;
@@ -75,6 +81,14 @@ export interface Registration {
   emergency_contact_relationship?: string;
   displacement_status?: string;
   displacement_date?: string;
+  community_of_origin?: string;
+  lga_of_origin?: string;
+  displacement_cause?: string;
+  perpetrating_actor?: string;
+  displacement_frequency?: string;
+  current_location_details?: any;
+  intention?: string;
+  intention_reason?: string;
   place_of_origin?: string;
   place_of_origin_district?: string;
   place_of_origin_region?: string;
@@ -92,9 +106,87 @@ export interface Registration {
   shelter_type?: string;
   has_documentation?: boolean;
   documentation_types?: string[];
+  nin_document_url?: string;
+  voter_id_url?: string;
+  birth_certificate_url?: string;
+  idp_certificate_url?: string;
+  other_documents?: any[];
+  previous_occupation?: string;
+  skill_level?: string;
+  current_livelihood_status?: string;
+  assets_lost?: string[];
+  livelihood_assistance_interests?: string[];
+  safety_perception?: string;
+  eviction_risk?: string;
+  has_complaint_mechanism_access?: boolean;
+  disability_types?: string[];
+  chronic_illness?: string;
+  is_pregnant?: boolean;
+  is_lactating?: boolean;
+  is_elderly?: boolean;
+  is_female_headed_household?: boolean;
+  has_unaccompanied_minors?: boolean;
+  gbv_risk_level?: string;
   assigned_organization?: string;
   organization_contact?: string;
   assignment_date?: string;
+}
+
+export interface ServiceHistory {
+  id: string;
+  registration_id: string;
+  service_type: string;
+  provider_organization: string;
+  service_date: string;
+  frequency?: string;
+  description?: string;
+  satisfaction_rating?: number;
+  notes?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ServiceNeed {
+  id: string;
+  registration_id: string;
+  need_category: string;
+  need_description: string;
+  is_urgent: boolean;
+  urgency_hours?: number;
+  status: 'pending' | 'in_progress' | 'fulfilled' | 'cancelled';
+  priority: 'low' | 'medium' | 'high' | 'critical';
+  assigned_to?: string;
+  fulfilled_date?: string;
+  notes?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface DurableSolutionsFollowup {
+  id: string;
+  registration_id: string;
+  followup_date: string;
+  followup_period: string;
+  current_location?: string;
+  location_stability?: string;
+  livelihood_status?: string;
+  income_level?: string;
+  housing_conditions?: string;
+  access_to_services?: any;
+  safety_security_status?: string;
+  integration_level?: string;
+  return_likelihood?: string;
+  challenges_faced?: string[];
+  support_received?: string[];
+  additional_needs?: string[];
+  durable_solution_achieved?: boolean;
+  solution_type?: string;
+  recommendations?: string;
+  next_followup_date?: string;
+  conducted_by?: string;
+  notes?: string;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface Attachment {
