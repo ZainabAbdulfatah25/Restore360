@@ -28,13 +28,19 @@ export const AdminDashboardPage = () => {
   const userOrganization = user?.organization_name;
 
   useEffect(() => {
+    if (!user) {
+      navigate('/login');
+      return;
+    }
+
     if (!isAdmin) {
       navigate('/dashboard');
       return;
     }
+
     loadOrganizations();
     loadPendingItems();
-  }, [user, navigate]);
+  }, [user, navigate, isAdmin]);
 
   const loadOrganizations = async () => {
     try {
@@ -59,15 +65,28 @@ export const AdminDashboardPage = () => {
       let filteredRefs = refs.data;
 
       if (userOrganization && user?.role === 'organization') {
-        filteredRegs = regs.data.filter(r =>
-          r.assigned_organization === userOrganization || !r.assigned_organization
-        );
-        filteredCases = cases.data.filter(c =>
-          c.assigned_to === userOrganization || !c.assigned_to
-        );
-        filteredRefs = refs.data.filter(r =>
-          r.referred_to === userOrganization
-        );
+        const orgNameLower = userOrganization.toLowerCase();
+
+        filteredRegs = regs.data.filter(r => {
+          if (!r.assigned_organization) return true;
+          return r.assigned_organization.toLowerCase() === orgNameLower ||
+                 r.assigned_organization.toLowerCase().includes(orgNameLower) ||
+                 orgNameLower.includes(r.assigned_organization.toLowerCase());
+        });
+
+        filteredCases = cases.data.filter(c => {
+          if (!c.assigned_to) return true;
+          return c.assigned_to.toLowerCase() === orgNameLower ||
+                 c.assigned_to.toLowerCase().includes(orgNameLower) ||
+                 orgNameLower.includes(c.assigned_to.toLowerCase());
+        });
+
+        filteredRefs = refs.data.filter(r => {
+          if (!r.referred_to) return false;
+          return r.referred_to.toLowerCase() === orgNameLower ||
+                 r.referred_to.toLowerCase().includes(orgNameLower) ||
+                 orgNameLower.includes(r.referred_to.toLowerCase());
+        });
       }
 
       setPendingRegistrations(filteredRegs);
