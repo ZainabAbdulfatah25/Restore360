@@ -65,8 +65,10 @@ export const SignupPage = () => {
 
       if (data.user_type === 'organization') {
         displayName = data.organization_name || displayName;
+        userRole = 'organization';
       } else if (data.user_type === 'individual') {
         displayName = data.full_name || displayName;
+        userRole = 'viewer';
       }
 
       const { error: profileError } = await supabase

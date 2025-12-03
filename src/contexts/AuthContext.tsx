@@ -8,6 +8,9 @@ interface User {
   phone?: string;
   department?: string;
   role: string;
+  organization_name?: string;
+  organization_type?: string;
+  user_type?: string;
 }
 
 interface AuthContextType {

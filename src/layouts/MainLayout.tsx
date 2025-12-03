@@ -23,12 +23,12 @@ interface MainLayoutProps {
 
 const getNavigation = (t: (key: string) => string) => [
   { name: t('dashboard'), href: '/dashboard', icon: LayoutDashboard },
-  { name: 'Admin', href: '/admin', icon: Shield, roles: ['admin', 'case_worker'] },
+  { name: 'Admin', href: '/admin', icon: Shield, roles: ['admin', 'case_worker', 'organization'] },
   { name: t('users'), href: '/users', icon: Users, roles: ['admin'] },
   { name: t('cases'), href: '/cases', icon: FolderOpen },
   { name: t('registrations'), href: '/registrations', icon: FileText },
   { name: t('referrals'), href: '/referrals', icon: ArrowRightLeft },
-  { name: t('reports'), href: '/reports', icon: BarChart3, roles: ['admin', 'case_worker'] },
+  { name: t('reports'), href: '/reports', icon: BarChart3, roles: ['admin', 'case_worker', 'organization'] },
   { name: t('settings'), href: '/settings', icon: Settings },
 ];
 
