@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
-import { Plus, Edit, Trash2 } from 'lucide-react';
+import { Plus, Edit, Trash2, CheckCircle, XCircle } from 'lucide-react';
 import { MainLayout } from '../../layouts';
 import { Card, Button, Input, Select, Modal, Badge, BackToDashboard } from '../../components/common';
 import { DataTable } from '../../components/tables';
@@ -13,7 +13,6 @@ interface ReferralFormData {
   client_name: string;
   client_phone: string;
   client_email?: string;
-  referred_to: string;
   reason: string;
   category: string;
   priority: string;
@@ -25,11 +24,19 @@ export const ReferralsPage = () => {
   const [organizations, setOrganizations] = useState<Organization[]>([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
+  const [showDeclineModal, setShowDeclineModal] = useState(false);
+  const [showAssignModal, setShowAssignModal] = useState(false);
   const [editingReferral, setEditingReferral] = useState<Referral | null>(null);
+  const [selectedReferral, setSelectedReferral] = useState<Referral | null>(null);
+  const [declineReason, setDeclineReason] = useState('');
+  const [selectedOrgId, setSelectedOrgId] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const { track } = useActivityLogger();
   const { user } = useAuth();
+
+  const isStateAdmin = user?.role === 'admin' || user?.role === 'state_admin';
+  const isOrganizationUser = user?.role === 'organization' || user?.role === 'manager';
 
   const {
     register,
@@ -84,23 +91,28 @@ export const ReferralsPage = () => {
 
   const onSubmit = async (data: ReferralFormData) => {
     try {
+      // End-users cannot assign - create referral without assignment
+      const referralData: any = {
+        ...data,
+        referred_to: 'Pending Assignment', // Will be assigned by state admin
+        status: 'pending',
+      };
+
       if (editingReferral) {
-        await referralsApi.updateReferral(editingReferral.id, data);
-        await track('update', 'referrals', `Updated referral to ${data.referred_to}`, {
+        await referralsApi.updateReferral(editingReferral.id, referralData);
+        await track('update', 'referrals', `Updated referral`, {
           referral_id: editingReferral.id,
           referral_number: editingReferral.referral_number,
           client_name: data.client_name,
-          referred_to: data.referred_to,
           category: data.category,
           priority: data.priority
         });
       } else {
-        const newReferral = await referralsApi.createReferral(data);
-        await track('create', 'referrals', `Created referral to ${data.referred_to}`, {
+        const newReferral = await referralsApi.createReferral(referralData);
+        await track('create', 'referrals', `Created referral`, {
           referral_id: newReferral.id,
           referral_number: newReferral.referral_number,
           client_name: data.client_name,
-          referred_to: data.referred_to,
           category: data.category,
           priority: data.priority
         });
@@ -115,16 +127,88 @@ export const ReferralsPage = () => {
     }
   };
 
+  const handleAccept = async (referral: Referral) => {
+    if (!confirm(`Accept referral ${referral.referral_number}?`)) return;
+
+    try {
+      await referralsApi.acceptReferral(referral.id);
+      await track('update', 'referrals', `Accepted referral ${referral.referral_number}`);
+      alert('Referral accepted successfully');
+      loadReferrals();
+    } catch (error) {
+      console.error('Failed to accept referral:', error);
+      alert('Failed to accept referral');
+    }
+  };
+
+  const handleDeclineClick = (referral: Referral) => {
+    setSelectedReferral(referral);
+    setDeclineReason('');
+    setShowDeclineModal(true);
+  };
+
+  const handleDecline = async () => {
+    if (!selectedReferral || !declineReason.trim()) {
+      alert('Please provide a decline reason');
+      return;
+    }
+
+    try {
+      await referralsApi.declineReferral(selectedReferral.id, declineReason);
+      await track('update', 'referrals', `Declined referral ${selectedReferral.referral_number}`, {
+        decline_reason: declineReason
+      });
+      alert('Referral declined. It is now available for reassignment.');
+      setShowDeclineModal(false);
+      setSelectedReferral(null);
+      setDeclineReason('');
+      loadReferrals();
+    } catch (error: any) {
+      console.error('Failed to decline referral:', error);
+      alert(error.message || 'Failed to decline referral');
+    }
+  };
+
+  const handleAssignClick = (referral: Referral) => {
+    setSelectedReferral(referral);
+    setSelectedOrgId('');
+    setShowAssignModal(true);
+  };
+
+  const handleAssign = async () => {
+    if (!selectedReferral || !selectedOrgId) {
+      alert('Please select an organization');
+      return;
+    }
+
+    try {
+      await referralsApi.assignReferral(selectedReferral.id, selectedOrgId);
+      await track('update', 'referrals', `Assigned referral ${selectedReferral.referral_number}`);
+      alert('Referral assigned successfully');
+      setShowAssignModal(false);
+      setSelectedReferral(null);
+      setSelectedOrgId('');
+      loadReferrals();
+    } catch (error: any) {
+      console.error('Failed to assign referral:', error);
+      alert(error.message || 'Failed to assign referral');
+    }
+  };
+
   const handleEdit = (referral: Referral) => {
+    // Only allow editing if user created it or is admin
+    if (referral.created_by !== user?.id && !isStateAdmin) {
+      alert('You can only edit referrals you created');
+      return;
+    }
     setEditingReferral(referral);
     reset({
-      client_name: referral.client_name,
-      client_phone: referral.client_phone,
+      client_name: referral.client_name || '',
+      client_phone: referral.client_phone || '',
       client_email: referral.client_email || '',
-      referred_to: referral.referred_to,
       reason: referral.reason,
-      category: referral.category,
-      priority: referral.priority,
+      category: referral.category || 'protection',
+      priority: referral.priority || 'medium',
       notes: referral.notes || '',
     });
     setShowModal(true);
@@ -152,11 +236,18 @@ export const ReferralsPage = () => {
   const getStatusBadge = (status: string) => {
     const variants: Record<string, 'default' | 'success' | 'warning' | 'danger' | 'info'> = {
       pending: 'warning',
-      in_progress: 'info',
+      accepted: 'success',
+      rejected: 'danger',
       completed: 'success',
       cancelled: 'danger',
     };
     return <Badge variant={variants[status] || 'default'}>{status}</Badge>;
+  };
+
+  // Check if referral is assigned to current user's organization
+  const isAssignedToMyOrg = (referral: Referral) => {
+    if (!isOrganizationUser || !user?.organization_id) return false;
+    return referral.assigned_organization_id === user.organization_id;
   };
 
   const getPriorityBadge = (priority: string) => {
@@ -228,20 +319,59 @@ export const ReferralsPage = () => {
                 label: 'Actions',
                 render: (r) => (
                   <div className="flex gap-2">
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => handleEdit(r)}
-                    >
-                      <Edit className="w-4 h-4" />
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => handleDelete(r.id)}
-                    >
-                      <Trash2 className="w-4 h-4 text-red-600" />
-                    </Button>
+                    {/* State Admin: Assign button for pending/unassigned referrals */}
+                    {isStateAdmin && (r.status === 'pending' || r.can_be_reassigned) && (
+                      <Button
+                        size="sm"
+                        variant="default"
+                        onClick={() => handleAssignClick(r)}
+                        title="Assign to Organization"
+                      >
+                        Assign
+                      </Button>
+                    )}
+                    {/* Organization: Accept/Decline buttons for assigned referrals */}
+                    {isOrganizationUser && isAssignedToMyOrg(r) && r.status === 'pending' && (
+                      <>
+                        <Button
+                          size="sm"
+                          variant="default"
+                          onClick={() => handleAccept(r)}
+                          title="Accept Referral"
+                        >
+                          <CheckCircle className="w-4 h-4 mr-1" />
+                          Accept
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => handleDeclineClick(r)}
+                          title="Decline Referral"
+                        >
+                          <XCircle className="w-4 h-4 mr-1" />
+                          Decline
+                        </Button>
+                      </>
+                    )}
+                    {/* Edit/Delete for creator or admin */}
+                    {(r.created_by === user?.id || isStateAdmin) && (
+                      <>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => handleEdit(r)}
+                        >
+                          <Edit className="w-4 h-4" />
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => handleDelete(r.id)}
+                        >
+                          <Trash2 className="w-4 h-4 text-red-600" />
+                        </Button>
+                      </>
+                    )}
                   </div>
                 ),
               },
@@ -289,41 +419,18 @@ export const ReferralsPage = () => {
               />
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Refer To Authority/Organization <span className="text-red-500">*</span>
-              </label>
-              <select
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                {...register('referred_to', { required: 'Please select an authority' })}
-              >
-                <option value="">Select Authority/Organization</option>
-                <optgroup label="Organizations">
-                  {organizations.map((org) => (
-                    <option key={org.id} value={org.name}>
-                      {org.name} - {org.type}
-                    </option>
-                  ))}
-                </optgroup>
-                <optgroup label="Government Agencies">
-                  <option value="Ministry of Health">Ministry of Health</option>
-                  <option value="Ministry of Education">Ministry of Education</option>
-                  <option value="Social Services Department">Social Services Department</option>
-                  <option value="Child Protection Services">Child Protection Services</option>
-                  <option value="Immigration Services">Immigration Services</option>
-                </optgroup>
-                <optgroup label="International Organizations">
-                  <option value="UNHCR">UNHCR</option>
-                  <option value="UNICEF">UNICEF</option>
-                  <option value="WFP">World Food Programme</option>
-                  <option value="WHO">World Health Organization</option>
-                  <option value="IOM">International Organization for Migration</option>
-                </optgroup>
-              </select>
-              {errors.referred_to && (
-                <p className="mt-1 text-sm text-red-600">{errors.referred_to.message}</p>
-              )}
-            </div>
+            {isStateAdmin && editingReferral && (
+              <div className="bg-yellow-50 border border-yellow-200 text-yellow-700 px-4 py-3 rounded-lg text-sm">
+                <p className="font-medium">Note: Assignment</p>
+                <p className="text-xs mt-1">Use the "Assign" button in the referrals list to assign this referral to an organization</p>
+              </div>
+            )}
+            {!isStateAdmin && (
+              <div className="bg-blue-50 border border-blue-200 text-blue-700 px-4 py-3 rounded-lg text-sm">
+                <p className="font-medium">Referral Submission</p>
+                <p className="text-xs mt-1">This referral will be reviewed and assigned by a state-level administrator. You cannot directly assign providers.</p>
+              </div>
+            )}
 
             <Select
               label="Category"
@@ -388,6 +495,80 @@ export const ReferralsPage = () => {
             </div>
           </form>
         </Modal>
+
+        {/* Decline Reason Modal */}
+        <Modal isOpen={showDeclineModal} onClose={() => setShowDeclineModal(false)} title="Decline Referral">
+          <div className="space-y-4">
+            <p className="text-sm text-gray-600">
+              Please provide a reason for declining this referral. This information is required and will be used for reassignment.
+            </p>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Decline Reason <span className="text-red-500">*</span>
+              </label>
+              <textarea
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                rows={4}
+                placeholder="Explain why this referral cannot be accepted..."
+                value={declineReason}
+                onChange={(e) => setDeclineReason(e.target.value)}
+              />
+            </div>
+            <div className="flex gap-3 pt-4">
+              <Button onClick={handleDecline} disabled={!declineReason.trim()}>
+                Decline Referral
+              </Button>
+              <Button type="button" variant="ghost" onClick={() => setShowDeclineModal(false)}>
+                Cancel
+              </Button>
+            </div>
+          </div>
+        </Modal>
+
+        {/* Assign Referral Modal (State Admin Only) */}
+        {isStateAdmin && (
+          <Modal isOpen={showAssignModal} onClose={() => setShowAssignModal(false)} title="Assign Referral to Organization">
+            <div className="space-y-4">
+              <p className="text-sm text-gray-600">
+                Select an active organization to assign this referral. Only active organizations can be assigned.
+              </p>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Organization <span className="text-red-500">*</span>
+                </label>
+                <select
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  value={selectedOrgId}
+                  onChange={(e) => setSelectedOrgId(e.target.value)}
+                >
+                  <option value="">Select Organization</option>
+                  {organizations
+                    .filter(org => org.is_active)
+                    .map((org) => (
+                      <option key={org.id} value={org.id}>
+                        {org.organization_name || org.name} - {org.type}
+                        {org.sectors_provided && org.sectors_provided.length > 0 && ` (${org.sectors_provided.join(', ')})`}
+                      </option>
+                    ))}
+                </select>
+              </div>
+              {selectedReferral?.decline_reason && (
+                <div className="bg-yellow-50 border border-yellow-200 text-yellow-700 px-4 py-3 rounded-lg text-sm">
+                  <p className="font-medium">Previous Decline Reason:</p>
+                  <p className="text-xs mt-1">{selectedReferral.decline_reason}</p>
+                </div>
+              )}
+              <div className="flex gap-3 pt-4">
+                <Button onClick={handleAssign} disabled={!selectedOrgId}>
+                  Assign Referral
+                </Button>
+                <Button type="button" variant="ghost" onClick={() => setShowAssignModal(false)}>
+                  Cancel
+                </Button>
+              </div>
+            </div>
+          </Modal>
+        )}
       </div>
     </MainLayout>
   );

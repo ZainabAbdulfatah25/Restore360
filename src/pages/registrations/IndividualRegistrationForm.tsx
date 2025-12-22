@@ -96,6 +96,8 @@ export const IndividualRegistrationForm = ({ onSuccess, onCancel }: Props) => {
         category: data.category,
         description: data.description,
         household_size: 1,
+        household_head: null, // Individual registration has no household head
+        is_head_of_household: false, // Explicitly mark as not head of household
         qr_code: generatedQrCode,
         status: 'pending',
         approval_status: 'pending',

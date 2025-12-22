@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { Save, User as UserIcon, Lock, Bell, Languages } from 'lucide-react';
 import { MainLayout } from '../../layouts';
@@ -6,6 +6,7 @@ import { Card, Button, Input, BackToDashboard } from '../../components/common';
 import { useAuth, useActivityLogger } from '../../hooks';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { usersApi } from '../../api';
+import { User } from '../../types';
 
 interface ProfileFormData {
   name: string;
@@ -214,36 +215,77 @@ export const SettingsPage = () => {
 
         {activeTab === 'notifications' && (
           <Card title="Notification Preferences">
-            <div className="p-6 space-y-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="font-medium text-gray-900">Email Notifications</p>
-                  <p className="text-sm text-gray-600">Receive email updates about your cases</p>
-                </div>
-                <input type="checkbox" className="w-5 h-5 text-blue-600 rounded" defaultChecked />
-              </div>
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="font-medium text-gray-900">Case Updates</p>
-                  <p className="text-sm text-gray-600">Get notified when cases are updated</p>
-                </div>
-                <input type="checkbox" className="w-5 h-5 text-blue-600 rounded" defaultChecked />
-              </div>
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="font-medium text-gray-900">Referral Notifications</p>
-                  <p className="text-sm text-gray-600">Receive alerts for new referrals</p>
-                </div>
-                <input type="checkbox" className="w-5 h-5 text-blue-600 rounded" defaultChecked />
-              </div>
-              <Button>
-                <Save className="w-4 h-4 mr-2" />
-                Save Preferences
-              </Button>
-            </div>
+            <NotificationPreferences user={user} />
           </Card>
         )}
       </div>
     </MainLayout>
+  );
+};
+
+// Notification Preferences Component
+const NotificationPreferences = ({ user }: { user: User | null }) => {
+  const [emailEnabled, setEmailEnabled] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const { track } = useActivityLogger();
+
+  useEffect(() => {
+    if (user) {
+      setEmailEnabled(user.notification_email_enabled ?? true);
+    }
+  }, [user]);
+
+  const handleSave = async () => {
+    if (!user) return;
+
+    try {
+      setSaving(true);
+      await usersApi.updateUser(user.id, {
+        notification_email_enabled: emailEnabled,
+      });
+      await track('update', 'settings', 'Updated notification preferences', {
+        email_enabled: emailEnabled,
+      });
+      alert('Notification preferences saved successfully!');
+    } catch (error) {
+      console.error('Failed to save notification preferences:', error);
+      alert('Failed to save notification preferences');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className="p-6 space-y-4">
+      <div className="bg-blue-50 border border-blue-200 text-blue-700 px-4 py-3 rounded-lg text-sm">
+        <p className="font-medium">Email Notification Settings</p>
+        <p className="text-xs mt-1">Control whether you receive email notifications about your cases, referrals, and system updates.</p>
+      </div>
+
+      <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
+        <div className="flex-1">
+          <p className="font-medium text-gray-900">Email Notifications</p>
+          <p className="text-sm text-gray-600 mt-1">
+            Receive email updates about your cases, referrals, and important system notifications
+          </p>
+        </div>
+        <label className="relative inline-flex items-center cursor-pointer ml-4">
+          <input
+            type="checkbox"
+            checked={emailEnabled}
+            onChange={(e) => setEmailEnabled(e.target.checked)}
+            className="sr-only peer"
+          />
+          <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+        </label>
+      </div>
+
+      <div className="pt-4">
+        <Button onClick={handleSave} isLoading={saving}>
+          <Save className="w-4 h-4 mr-2" />
+          Save Preferences
+        </Button>
+      </div>
+    </div>
   );
 };
