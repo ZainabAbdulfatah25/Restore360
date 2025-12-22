@@ -115,6 +115,7 @@ export const AdminDashboardPage = () => {
             approved_at: new Date().toISOString()
           })
           .eq('id', id);
+        alert('Registration approved successfully!');
       } else if (type === 'case') {
         // FIX: Case approval status is set to 'approved' but status is set to 'approved' (from cases.ts fix)
         await supabase
@@ -126,22 +127,28 @@ export const AdminDashboardPage = () => {
             approved_at: new Date().toISOString()
           })
           .eq('id', id);
+        alert('Case approved successfully!');
       } else {
-        await supabase
-          .from('referrals')
-          .update({
-            approval_status: 'approved',
-            status: 'accepted',
-            approved_by: user?.id,
-            approved_at: new Date().toISOString()
-          })
-          .eq('id', id);
+        // Referrals should use assignReferral API instead
+        // This function should not be called for referrals - use handleAssignReferral instead
+        alert('Please use the Assign button for referrals');
+        return;
       }
-      alert(`${type.charAt(0).toUpperCase() + type.slice(1)} approved successfully!`);
       loadPendingItems();
     } catch (error) {
       console.error('Failed to approve:', error);
       alert('Failed to approve item');
+    }
+  };
+
+  const handleAssignReferral = async (referralId: string, organizationId: string) => {
+    try {
+      await referralsApi.assignReferral(referralId, organizationId);
+      alert('Referral assigned successfully!');
+      loadPendingItems();
+    } catch (error: any) {
+      console.error('Failed to assign referral:', error);
+      alert(error.message || 'Failed to assign referral');
     }
   };
 
@@ -217,6 +224,7 @@ export const AdminDashboardPage = () => {
             assignment_date: new Date().toISOString()
           })
           .eq('id', id);
+        alert(`Registration assigned to ${selectedOrg} successfully!`);
       } else if (type === 'case') {
         await supabase
           .from('cases')
@@ -225,9 +233,17 @@ export const AdminDashboardPage = () => {
             assigned_to_type: 'organization'
           })
           .eq('id', id);
+        alert(`Case assigned to ${selectedOrg} successfully!`);
+      } else if (type === 'referral') {
+        // Use the referrals API for proper assignment
+        await handleAssignReferral(id, selectedOrg);
+        setShowAssignModal(false);
+        setSelectedItem(null);
+        setSelectedOrg('');
+        loadPendingItems();
+        return;
       }
 
-      alert(`${type.charAt(0).toUpperCase() + type.slice(1)} assigned to ${selectedOrg} successfully!`);
       setShowAssignModal(false);
       setSelectedItem(null);
       setSelectedOrg('');
@@ -243,7 +259,7 @@ export const AdminDashboardPage = () => {
     setShowRejectModal(true);
   };
 
-  const openAssignModal = (id: string, type: 'registration' | 'case') => {
+  const openAssignModal = (id: string, type: 'registration' | 'case' | 'referral') => {
     setSelectedItem({ id, type });
     setShowAssignModal(true);
   };
@@ -678,25 +694,19 @@ export const AdminDashboardPage = () => {
                   label: 'Actions',
                   render: (r) => (
                     <div className="flex gap-2">
-                      {r.approval_status === 'pending' && (
-                        <>
-                          <Button
-                            size="sm"
-                            variant="secondary"
-                            onClick={() => handleApprove(r.id, 'referral')}
-                          >
-                            <CheckCircle className="w-4 h-4 mr-1" />
-                            Accept
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            onClick={() => openRejectModal(r.id, 'referral')}
-                          >
-                            <XCircle className="w-4 h-4 mr-1 text-red-600" />
-                            Reject
-                          </Button>
-                        </>
+                      {(r.status === 'pending' || r.can_be_reassigned) && (user?.role === 'admin' || user?.role === 'state_admin') && (
+                        <Button
+                          size="sm"
+                          variant="secondary"
+                          onClick={() => openAssignModal(r.id, 'referral')}
+                          title="Assign to Organization"
+                        >
+                          <Users className="w-4 h-4 mr-1" />
+                          Assign
+                        </Button>
+                      )}
+                      {r.status === 'rejected' && r.can_be_reassigned && (
+                        <span className="text-xs text-orange-600">Available for Reassignment</span>
                       )}
                     </div>
                   ),
@@ -770,11 +780,13 @@ export const AdminDashboardPage = () => {
           setSelectedItem(null);
           setSelectedOrg('');
         }}
-        title="Assign to Organization"
+        title={selectedItem?.type === 'referral' ? 'Assign Referral to Organization' : 'Assign to Organization'}
       >
         <div className="space-y-4 p-4">
           <p className="text-sm text-gray-600">
-            Select an organization to assign this item to. The organization will receive full access to manage this case.
+            {selectedItem?.type === 'referral' 
+              ? 'Select an active organization to assign this referral. Only active organizations can be assigned.'
+              : 'Select an organization to assign this item to. The organization will receive full access to manage this case.'}
           </p>
 
           <div>
@@ -788,17 +800,27 @@ export const AdminDashboardPage = () => {
             >
               <option value="">Select organization...</option>
               <optgroup label="Registered Organizations">
-                {organizations.map((org) => (
-                  <option key={org.id} value={org.name}>
-                    {org.name} - {org.type}
-                  </option>
-                ))}
+                {organizations
+                  .filter(org => selectedItem?.type === 'referral' ? org.is_active : true)
+                  .map((org) => (
+                    <option key={org.id} value={selectedItem?.type === 'referral' ? org.id : org.name}>
+                      {org.organization_name || org.name} - {org.type}
+                      {selectedItem?.type === 'referral' && org.sectors_provided && org.sectors_provided.length > 0 && 
+                        ` (${org.sectors_provided.join(', ')})`}
+                      {!org.is_active && selectedItem?.type !== 'referral' && ' (Inactive)'}
+                    </option>
+                  ))}
               </optgroup>
-              <optgroup label="Default Organizations">
-                <option value="MyIT Consult Ltd">MyIT Consult Ltd</option>
-                <option value="NCRFMI">NCRFMI</option>
-              </optgroup>
+              {selectedItem?.type !== 'referral' && (
+                <optgroup label="Default Organizations">
+                  <option value="MyIT Consult Ltd">MyIT Consult Ltd</option>
+                  <option value="NCRFMI">NCRFMI</option>
+                </optgroup>
+              )}
             </select>
+            {selectedItem?.type === 'referral' && organizations.filter(org => org.is_active).length === 0 && (
+              <p className="mt-2 text-sm text-yellow-600">No active organizations available for assignment.</p>
+            )}
           </div>
 
           <div className="flex gap-3 justify-end">
@@ -816,7 +838,7 @@ export const AdminDashboardPage = () => {
               onClick={handleAssignToOrg}
               disabled={!selectedOrg}
             >
-              Assign Organization
+              {selectedItem?.type === 'referral' ? 'Assign Referral' : 'Assign Organization'}
             </Button>
           </div>
         </div>

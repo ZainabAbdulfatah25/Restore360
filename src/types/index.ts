@@ -2,13 +2,16 @@ export interface User {
   id: string;
   name: string;
   email: string;
-  role: 'admin' | 'case_worker' | 'field_officer' | 'viewer' | 'organization';
+  role: 'admin' | 'state_admin' | 'case_worker' | 'field_officer' | 'viewer' | 'organization' | 'manager' | 'field_worker' | 'ordinary_user';
   phone?: string;
   department?: string;
   organization_name?: string;
   organization_type?: string;
+  organization_id?: string; // Link to organization entity
+  state_assignment?: string; // State assignment for state-level admins
   description?: string;
   status: 'active' | 'inactive';
+  notification_email_enabled?: boolean; // Email notification preference
   password?: string;
   created_at: string;
   updated_at: string;
@@ -206,7 +209,7 @@ export interface Referral {
   referral_number?: string;
   case_id?: string;
   referred_from: string;
-  referred_to: string;
+  referred_to: string; // Legacy text field, kept for backward compatibility
   from_user?: User;
   to_user?: User;
   client_name?: string;
@@ -221,6 +224,10 @@ export interface Referral {
   approved_by?: string;
   approved_at?: string;
   rejection_reason?: string;
+  decline_reason?: string; // Mandatory reason when organization declines
+  assigned_by?: string; // State-level admin who assigned the referral
+  assigned_organization_id?: string; // Reference to organization entity
+  can_be_reassigned?: boolean; // Flag for declined referrals available for reassignment
   created_at: string;
   updated_at: string;
 }
@@ -228,10 +235,19 @@ export interface Referral {
 export interface Organization {
   id: string;
   name: string;
+  organization_name: string; // Unique organization identifier
   type?: string;
-  contact_email?: string;
-  contact_phone?: string;
+  email?: string; // Legacy field
+  contact_email?: string; // Primary contact email
+  phone?: string; // Legacy field
+  contact_phone?: string; // Primary contact phone
   address?: string;
+  description?: string;
+  sectors_provided?: string[]; // Array of services/sectors offered
+  locations_covered?: string[]; // Array of locations covered
+  is_active?: boolean; // Active/inactive status for availability management
+  state?: string; // State assignment for state-level admins
+  created_by?: string;
   created_at: string;
   updated_at: string;
 }
