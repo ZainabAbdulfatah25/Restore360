@@ -115,7 +115,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         .from('users')
         .select('*')
         .eq('id', data.user.id)
-        .single();
+        .maybeSingle();
 
       if (profileError) {
         console.error('Error loading user profile:', profileError);
@@ -125,6 +125,27 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       if (userData) {
         setUser(userData);
         return userData;
+      } else {
+        // Profile missing (likely created before table existed), create it now
+        const newProfile = {
+          id: data.user.id,
+          email: data.user.email!,
+          name: data.user.email!.split('@')[0],
+          role: 'viewer',
+          user_type: 'individual'
+        };
+
+        const { error: insertError } = await supabase
+          .from('users')
+          .insert(newProfile);
+
+        if (insertError) {
+          console.error('Error creating user profile:', insertError);
+          return null;
+        }
+
+        setUser(newProfile as User);
+        return newProfile as User;
       }
     }
 
