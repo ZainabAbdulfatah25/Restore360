@@ -14,7 +14,7 @@ export const DashboardPage = () => {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [urgentCases, setUrgentCases] = useState<Case[]>([]);
   const [casesByCategory, setCasesByCategory] = useState<any>({});
-  const [activityTrend, setActivityTrend] = useState<Array<{date: string; cases: number; referrals: number; registrations: number; label: string}>>([]);
+  const [activityTrend, setActivityTrend] = useState<Array<{ date: string; cases: number; referrals: number; registrations: number; label: string }>>([]);
   const [loading, setLoading] = useState(true);
   const [isLive, setIsLive] = useState(true);
   const { track } = useActivityLogger();
@@ -476,6 +476,46 @@ export const DashboardPage = () => {
                       <span className="text-xs text-gray-600">Registrations ({activityTrend.reduce((sum, item) => sum + item.registrations, 0)})</span>
                     </div>
                   </div>
+                </div>
+              </div>
+            </Card>
+
+            {/* Recent Activity List */}
+            <Card title="Recent Activity" className="shadow-lg">
+              <div className="p-4">
+                <div className="space-y-4">
+                  {stats?.recent_activity && stats.recent_activity.length > 0 ? (
+                    stats.recent_activity.map((log) => (
+                      <div key={log.id} className="flex items-start gap-3 pb-3 border-b border-gray-100 last:border-0 last:pb-0">
+                        <div className="p-2 bg-gray-100 rounded-full">
+                          <Activity className="w-4 h-4 text-gray-500" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-gray-900 truncate">
+                            {log.user?.name || 'Unknown User'}
+                          </p>
+                          <p className="text-xs text-gray-600 mt-0.5">
+                            {log.description}
+                          </p>
+                          <p className="text-xs text-gray-400 mt-1">
+                            {new Date(log.created_at).toLocaleString()}
+                          </p>
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="text-center py-6 text-gray-500">
+                      <p>No recent activity</p>
+                    </div>
+                  )}
+                </div>
+                <div className="mt-4 pt-3 border-t border-gray-100 text-center">
+                  <button
+                    className="text-sm text-primary-600 hover:text-primary-700 font-medium"
+                    onClick={() => navigate('/reports')} // Assuming reports page has full logs
+                  >
+                    View Full History
+                  </button>
                 </div>
               </div>
             </Card>

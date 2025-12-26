@@ -15,7 +15,22 @@ interface SignupFormData {
   organization_type?: string;
   full_name?: string;
   department?: string;
+  sectors?: string[];
+  locations?: string;
 }
+
+const SECTORS = [
+  'Protection',
+  'Health',
+  'Education',
+  'WASH',
+  'Shelter',
+  'Food Security',
+  'Nutrition',
+  'Legal Assistance',
+  'Psychosocial Support (PSS)',
+  'Livelihood'
+];
 
 export const SignupPage = () => {
   const [error, setError] = useState('');
@@ -28,14 +43,25 @@ export const SignupPage = () => {
     register,
     handleSubmit,
     watch,
+    setValue,
     formState: { errors, isSubmitting },
   } = useForm<SignupFormData>({
     defaultValues: {
-      user_type: 'individual'
+      user_type: 'individual',
+      sectors: []
     }
   });
 
   const password = watch('password');
+  const selectedSectors = watch('sectors') || [];
+
+  const handleSectorChange = (sector: string, checked: boolean) => {
+    if (checked) {
+      setValue('sectors', [...selectedSectors, sector]);
+    } else {
+      setValue('sectors', selectedSectors.filter(s => s !== sector));
+    }
+  };
 
   const onSubmit = async (data: SignupFormData) => {
     try {
@@ -64,10 +90,38 @@ export const SignupPage = () => {
 
       let displayName = data.email.split('@')[0];
       let userRole = 'viewer';
+      let orgId = null;
 
       if (data.user_type === 'organization') {
         displayName = data.organization_name || displayName;
         userRole = 'organization';
+
+        // Create Organization Entity
+        const { data: orgData, error: orgError } = await supabase
+          .from('organizations')
+          .insert({
+            name: data.organization_name,
+            organization_name: data.organization_name,
+            type: data.organization_type,
+            contact_email: data.email,
+            sectors_provided: data.sectors,
+            locations_covered: data.locations ? data.locations.split(',').map(l => l.trim()) : [],
+            is_active: true,
+            created_by: authData.user.id
+          })
+          .select()
+          .single();
+
+        if (orgError) {
+          console.error('Organization creation error:', orgError);
+          // Fallback: continue creating user but warn? Or fail?
+          // We should probably fail or at least log it.
+          // For now, we proceed but without orgId if it failed, which might be bad.
+          // Let's throw to stop.
+          throw new Error('Failed to create organization profile: ' + orgError.message);
+        }
+
+        orgId = orgData.id;
       } else if (data.user_type === 'individual') {
         displayName = data.full_name || displayName;
         userRole = 'viewer';
@@ -83,11 +137,13 @@ export const SignupPage = () => {
           user_type: data.user_type,
           organization_name: data.organization_name,
           organization_type: data.organization_type,
+          organization_id: orgId,
           department: data.department,
         });
 
       if (profileError) {
         console.error('Profile creation error:', profileError);
+        throw new Error('Failed to create user profile: ' + profileError.message);
       }
 
       navigate('/login', {
@@ -120,17 +176,17 @@ export const SignupPage = () => {
           </div>
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
-          {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
-              {error}
-            </div>
-          )}
+            {error && (
+              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
+                {error}
+              </div>
+            )}
 
-          {success && (
-            <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg text-sm">
-              {success}
-            </div>
-          )}
+            {success && (
+              <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg text-sm">
+                {success}
+              </div>
+            )}
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-3 sm:mb-4">Choose Account Type</label>
@@ -138,16 +194,14 @@ export const SignupPage = () => {
                 <button
                   type="button"
                   onClick={() => setUserType('individual')}
-                  className={`p-4 sm:p-5 rounded-2xl border-2 transition-all transform hover:scale-105 ${
-                    userType === 'individual'
+                  className={`p-4 sm:p-5 rounded-2xl border-2 transition-all transform hover:scale-105 ${userType === 'individual'
                       ? 'border-primary-500 bg-primary-50 shadow-lg'
                       : 'border-gray-200 hover:border-primary-300 bg-white'
-                  }`}
+                    }`}
                 >
                   <div className="text-center">
-                    <User className={`w-8 h-8 mx-auto mb-2 ${
-                      userType === 'individual' ? 'text-primary-600' : 'text-gray-400'
-                    }`} />
+                    <User className={`w-8 h-8 mx-auto mb-2 ${userType === 'individual' ? 'text-primary-600' : 'text-gray-400'
+                      }`} />
                     <p className="font-semibold text-gray-900 text-sm sm:text-base">Individual</p>
                     <p className="text-xs text-gray-600 mt-1">Student/Personal</p>
                   </div>
@@ -155,16 +209,14 @@ export const SignupPage = () => {
                 <button
                   type="button"
                   onClick={() => setUserType('organization')}
-                  className={`p-4 sm:p-5 rounded-2xl border-2 transition-all transform hover:scale-105 ${
-                    userType === 'organization'
+                  className={`p-4 sm:p-5 rounded-2xl border-2 transition-all transform hover:scale-105 ${userType === 'organization'
                       ? 'border-success-500 bg-success-50 shadow-lg'
                       : 'border-gray-200 hover:border-success-300 bg-white'
-                  }`}
+                    }`}
                 >
                   <div className="text-center">
-                    <Building className={`w-8 h-8 mx-auto mb-2 ${
-                      userType === 'organization' ? 'text-success-600' : 'text-gray-400'
-                    }`} />
+                    <Building className={`w-8 h-8 mx-auto mb-2 ${userType === 'organization' ? 'text-success-600' : 'text-gray-400'
+                      }`} />
                     <p className="font-semibold text-gray-900 text-sm sm:text-base">Organization</p>
                     <p className="text-xs text-gray-600 mt-1">NGO/Agency</p>
                   </div>
@@ -172,115 +224,140 @@ export const SignupPage = () => {
               </div>
             </div>
 
-          {userType === 'individual' && (
-            <Input
-              label="Full Name"
-              placeholder="Enter your full name"
-              error={errors.full_name?.message}
-              {...register('full_name', {
-                required: userType === 'individual' ? 'Full name is required' : false
-              })}
-            />
-          )}
-
-          {userType === 'organization' && (
-            <>
+            {userType === 'individual' && (
               <Input
-                label="Organization Name"
-                placeholder="Enter organization name"
-                error={errors.organization_name?.message}
-                {...register('organization_name', {
-                  required: userType === 'organization' ? 'Organization name is required' : false
+                label="Full Name"
+                placeholder="Enter your full name"
+                error={errors.full_name?.message}
+                {...register('full_name', {
+                  required: userType === 'individual' ? 'Full name is required' : false
                 })}
               />
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Organization Type</label>
-                <select
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  {...register('organization_type', {
-                    required: userType === 'organization' ? 'Organization type is required' : false
+            )}
+
+            {userType === 'organization' && (
+              <>
+                <Input
+                  label="Organization Name"
+                  placeholder="Enter organization name"
+                  error={errors.organization_name?.message}
+                  {...register('organization_name', {
+                    required: userType === 'organization' ? 'Organization name is required' : false
                   })}
-                >
-                  <option value="">Select type</option>
-                  <option value="NGO">NGO</option>
-                  <option value="Government">Government Agency</option>
-                  <option value="International">International Organization</option>
-                  <option value="Community">Community Group</option>
-                  <option value="Religious">Religious Organization</option>
-                </select>
-                {errors.organization_type && (
-                  <p className="mt-1 text-sm text-red-600">{errors.organization_type.message}</p>
-                )}
-              </div>
-            </>
-          )}
+                />
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Organization Type</label>
+                  <select
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    {...register('organization_type', {
+                      required: userType === 'organization' ? 'Organization type is required' : false
+                    })}
+                  >
+                    <option value="">Select type</option>
+                    <option value="NGO">NGO</option>
+                    <option value="Government">Government Agency</option>
+                    <option value="International">International Organization</option>
+                    <option value="Community">Community Group</option>
+                    <option value="Religious">Religious Organization</option>
+                  </select>
+                  {errors.organization_type && (
+                    <p className="mt-1 text-sm text-red-600">{errors.organization_type.message}</p>
+                  )}
+                </div>
 
-          <Input
-            label="Email"
-            type="email"
-            placeholder="name@organization.org"
-            error={errors.email?.message}
-            {...register('email', {
-              required: 'Email is required',
-              pattern: {
-                value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                message: 'Invalid email address',
-              },
-            })}
-          />
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Services / Sectors Provided</label>
+                  <div className="grid grid-cols-2 gap-2">
+                    {SECTORS.map((sector) => (
+                      <label key={sector} className="flex items-center space-x-2 p-2 border rounded-lg hover:bg-gray-50 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          value={sector}
+                          checked={selectedSectors.includes(sector)}
+                          onChange={(e) => handleSectorChange(sector, e.target.checked)}
+                          className="rounded text-blue-600 focus:ring-blue-500"
+                        />
+                        <span className="text-sm text-gray-700">{sector}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
 
-          <div className="relative">
+                <Input
+                  label="Locations Covered"
+                  placeholder="e.g. Lagos, Abuja, Kano (comma separated)"
+                  error={errors.locations?.message}
+                  {...register('locations')}
+                />
+              </>
+            )}
+
             <Input
-              label="Password"
-              type={showPassword ? 'text' : 'password'}
-              placeholder="Enter your password"
-              error={errors.password?.message}
-              {...register('password', {
-                required: 'Password is required',
-                minLength: {
-                  value: 8,
-                  message: 'Password must be at least 8 characters',
+              label="Email"
+              type="email"
+              placeholder="name@organization.org"
+              error={errors.email?.message}
+              {...register('email', {
+                required: 'Email is required',
+                pattern: {
+                  value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
+                  message: 'Invalid email address',
                 },
               })}
             />
-            <button
-              type="button"
-              onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3 top-9 text-gray-500 hover:text-gray-700 transition-colors"
-              aria-label={showPassword ? 'Hide password' : 'Show password'}
-            >
-              {showPassword ? (
-                <EyeOff className="w-5 h-5" />
-              ) : (
-                <Eye className="w-5 h-5" />
-              )}
-            </button>
-          </div>
 
-          <div className="relative">
-            <Input
-              label="Confirm Password"
-              type={showConfirmPassword ? 'text' : 'password'}
-              placeholder="Re-enter your password"
-              error={errors.confirm_password?.message}
-              {...register('confirm_password', {
-                required: 'Please confirm your password',
-                validate: (value) => value === password || 'Passwords do not match',
-              })}
-            />
-            <button
-              type="button"
-              onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-              className="absolute right-3 top-9 text-gray-500 hover:text-gray-700 transition-colors"
-              aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}
-            >
-              {showConfirmPassword ? (
-                <EyeOff className="w-5 h-5" />
-              ) : (
-                <Eye className="w-5 h-5" />
-              )}
-            </button>
-          </div>
+            <div className="relative">
+              <Input
+                label="Password"
+                type={showPassword ? 'text' : 'password'}
+                placeholder="Enter your password"
+                error={errors.password?.message}
+                {...register('password', {
+                  required: 'Password is required',
+                  minLength: {
+                    value: 8,
+                    message: 'Password must be at least 8 characters',
+                  },
+                })}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-9 text-gray-500 hover:text-gray-700 transition-colors"
+                aria-label={showPassword ? 'Hide password' : 'Show password'}
+              >
+                {showPassword ? (
+                  <EyeOff className="w-5 h-5" />
+                ) : (
+                  <Eye className="w-5 h-5" />
+                )}
+              </button>
+            </div>
+
+            <div className="relative">
+              <Input
+                label="Confirm Password"
+                type={showConfirmPassword ? 'text' : 'password'}
+                placeholder="Re-enter your password"
+                error={errors.confirm_password?.message}
+                {...register('confirm_password', {
+                  required: 'Please confirm your password',
+                  validate: (value) => value === password || 'Passwords do not match',
+                })}
+              />
+              <button
+                type="button"
+                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                className="absolute right-3 top-9 text-gray-500 hover:text-gray-700 transition-colors"
+                aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}
+              >
+                {showConfirmPassword ? (
+                  <EyeOff className="w-5 h-5" />
+                ) : (
+                  <Eye className="w-5 h-5" />
+                )}
+              </button>
+            </div>
 
             <Button
               type="submit"

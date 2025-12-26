@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
-import { Plus, Edit, Trash2, CheckCircle, XCircle } from 'lucide-react';
+import { Plus, Edit, Trash2, CheckCircle, XCircle, Filter } from 'lucide-react';
 import { MainLayout } from '../../layouts';
 import { Card, Button, Input, Select, Modal, Badge, BackToDashboard } from '../../components/common';
 import { DataTable } from '../../components/tables';
@@ -17,6 +17,7 @@ interface ReferralFormData {
   category: string;
   priority: string;
   notes?: string;
+  assigned_organization_id?: string;
 }
 
 export const ReferralsPage = () => {
@@ -32,6 +33,11 @@ export const ReferralsPage = () => {
   const [selectedOrgId, setSelectedOrgId] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+
+  // Filters for Assignment Modal
+  const [assignFilterLocation, setAssignFilterLocation] = useState('');
+  const [assignFilterSector, setAssignFilterSector] = useState('');
+
   const { track } = useActivityLogger();
   const { user } = useAuth();
 
@@ -91,10 +97,17 @@ export const ReferralsPage = () => {
 
   const onSubmit = async (data: ReferralFormData) => {
     try {
-      // End-users cannot assign - create referral without assignment
+      let referredTo = 'Pending Assignment';
+      if (data.assigned_organization_id) {
+        const selectedOrg = organizations.find(org => org.id === data.assigned_organization_id);
+        if (selectedOrg) {
+          referredTo = selectedOrg.organization_name || selectedOrg.name;
+        }
+      }
+
       const referralData: any = {
         ...data,
-        referred_to: 'Pending Assignment', // Will be assigned by state admin
+        referred_to: referredTo,
         status: 'pending',
       };
 
@@ -172,6 +185,8 @@ export const ReferralsPage = () => {
   const handleAssignClick = (referral: Referral) => {
     setSelectedReferral(referral);
     setSelectedOrgId('');
+    setAssignFilterLocation('');
+    setAssignFilterSector('');
     setShowAssignModal(true);
   };
 
@@ -210,6 +225,7 @@ export const ReferralsPage = () => {
       category: referral.category || 'protection',
       priority: referral.priority || 'medium',
       notes: referral.notes || '',
+      assigned_organization_id: referral.assigned_organization_id,
     });
     setShowModal(true);
   };
@@ -259,6 +275,19 @@ export const ReferralsPage = () => {
     };
     return <Badge variant={variants[priority] || 'default'}>{priority}</Badge>;
   };
+
+  // Filter organizations for assignment
+  const filteredOrganizations = organizations.filter(org => {
+    if (!org.is_active) return false;
+
+    const matchesLocation = !assignFilterLocation ||
+      org.locations_covered?.some(l => l.toLowerCase().includes(assignFilterLocation.toLowerCase()));
+
+    const matchesSector = !assignFilterSector ||
+      org.sectors_provided?.some(s => s.toLowerCase().includes(assignFilterSector.toLowerCase()));
+
+    return matchesLocation && matchesSector;
+  });
 
   return (
     <MainLayout>
@@ -432,6 +461,22 @@ export const ReferralsPage = () => {
               </div>
             )}
 
+            {isStateAdmin && (
+              <Select
+                label="Assigned Authority/Organization (Optional)"
+                options={[
+                  { value: '', label: 'Select Organization (Optional)' },
+                  ...organizations
+                    .filter(org => org.is_active)
+                    .map(org => ({
+                      value: org.id,
+                      label: `${org.organization_name || org.name} (${org.type})`
+                    }))
+                ]}
+                {...register('assigned_organization_id')}
+              />
+            )}
+
             <Select
               label="Category"
               options={[
@@ -439,9 +484,11 @@ export const ReferralsPage = () => {
                 { value: 'shelter', label: 'Shelter' },
                 { value: 'food', label: 'Food Security' },
                 { value: 'health', label: 'Health' },
+                { value: 'nutrition', label: 'Nutrition' },
+                { value: 'wash', label: 'WASH' },
                 { value: 'education', label: 'Education' },
                 { value: 'legal', label: 'Legal Assistance' },
-                { value: 'psychosocial', label: 'Psychosocial Support' },
+                { value: 'psychosocial', label: 'Psychosocial Support (PSS)' },
                 { value: 'livelihood', label: 'Livelihood' },
               ]}
               error={errors.category?.message}
@@ -476,7 +523,7 @@ export const ReferralsPage = () => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Additional Notes</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">External Notes</label>
               <textarea
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 rows={2}
@@ -532,6 +579,22 @@ export const ReferralsPage = () => {
               <p className="text-sm text-gray-600">
                 Select an active organization to assign this referral. Only active organizations can be assigned.
               </p>
+
+              <div className="grid grid-cols-2 gap-3 bg-gray-50 p-3 rounded-lg">
+                <Input
+                  label="Filter by Location"
+                  placeholder="e.g. Lagos"
+                  value={assignFilterLocation}
+                  onChange={(e) => setAssignFilterLocation(e.target.value)}
+                />
+                <Input
+                  label="Filter by Sector"
+                  placeholder="e.g. Health"
+                  value={assignFilterSector}
+                  onChange={(e) => setAssignFilterSector(e.target.value)}
+                />
+              </div>
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Organization <span className="text-red-500">*</span>
@@ -542,15 +605,16 @@ export const ReferralsPage = () => {
                   onChange={(e) => setSelectedOrgId(e.target.value)}
                 >
                   <option value="">Select Organization</option>
-                  {organizations
-                    .filter(org => org.is_active)
-                    .map((org) => (
-                      <option key={org.id} value={org.id}>
-                        {org.organization_name || org.name} - {org.type}
-                        {org.sectors_provided && org.sectors_provided.length > 0 && ` (${org.sectors_provided.join(', ')})`}
-                      </option>
-                    ))}
+                  {filteredOrganizations.map((org) => (
+                    <option key={org.id} value={org.id}>
+                      {org.organization_name || org.name} - {org.type}
+                      {org.sectors_provided && org.sectors_provided.length > 0 && ` (${org.sectors_provided.join(', ')})`}
+                    </option>
+                  ))}
                 </select>
+                {filteredOrganizations.length === 0 && (
+                  <p className="text-xs text-red-500 mt-1">No matching active organizations found.</p>
+                )}
               </div>
               {selectedReferral?.decline_reason && (
                 <div className="bg-yellow-50 border border-yellow-200 text-yellow-700 px-4 py-3 rounded-lg text-sm">

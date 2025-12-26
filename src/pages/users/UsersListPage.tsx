@@ -4,7 +4,7 @@ import { Plus, Search, Edit, Trash2, Eye } from 'lucide-react';
 import { MainLayout } from '../../layouts';
 import { Card, Button, Input, Badge, Modal } from '../../components/common';
 import { DataTable } from '../../components/tables';
-import { useActivityLogger } from '../../hooks';
+import { useActivityLogger, useAuth } from '../../hooks';
 import { usersApi } from '../../api';
 import { User } from '../../types';
 
@@ -19,17 +19,35 @@ export const UsersListPage = () => {
   const [deleting, setDeleting] = useState(false);
   const navigate = useNavigate();
   const { track } = useActivityLogger();
+  const { user: currentUser } = useAuth();
+
+  const isOrgAdmin = currentUser?.role === 'organization' || currentUser?.role === 'manager';
 
   useEffect(() => {
     loadUsers();
-  }, [currentPage]);
+  }, [currentPage, currentUser]);
 
   const loadUsers = async () => {
     try {
       setLoading(true);
-      const response = await usersApi.getUsers({ page: currentPage, limit: 10 });
-      setUsers(response.data);
+      // Fetch more to filter client-side if needed. Ideally API should support filtering.
+      const response = await usersApi.getUsers({ page: currentPage, limit: 100 });
+
+      let fetchedUsers = response.data;
+
+      // Filter by organization if current user is an Organization Admin
+      if (isOrgAdmin && currentUser?.organization_name) {
+        fetchedUsers = fetchedUsers.filter(u =>
+          u.organization_name === currentUser.organization_name ||
+          u.organization_id === currentUser.organization_id
+        );
+      }
+
+      setUsers(fetchedUsers);
+      // Note: Total pages might be inaccurate with client-side filtering of paginated results
+      // We keep the original total pages for now as a rough estimate or until API supports filtering
       setTotalPages(response.total_pages);
+
       await track('view', 'users', 'Viewed users list');
     } catch (error) {
       console.error('Failed to load users:', error);
@@ -44,11 +62,15 @@ export const UsersListPage = () => {
   );
 
   const getRoleBadge = (role: string) => {
-    const variants: Record<string, 'default' | 'success' | 'warning' | 'danger'> = {
+    const variants: Record<string, 'default' | 'success' | 'warning' | 'danger' | 'info'> = {
       admin: 'danger',
+      state_admin: 'danger',
       organization: 'warning',
-      case_manager: 'success',
+      manager: 'warning',
+      case_worker: 'success',
       field_worker: 'success',
+      field_officer: 'success',
+      ordinary_user: 'default',
       viewer: 'default',
     };
     return <Badge variant={variants[role] || 'default'}>{role.replace('_', ' ')}</Badge>;
@@ -95,7 +117,9 @@ export const UsersListPage = () => {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold text-gray-900">Users</h1>
-            <p className="text-gray-600 mt-1">Manage system users and permissions</p>
+            <p className="text-gray-600 mt-1">
+              {isOrgAdmin ? 'Manage organization staff' : 'Manage system users and permissions'}
+            </p>
           </div>
           <Button onClick={() => navigate('/users/create')}>
             <Plus className="w-4 h-4 mr-2" />

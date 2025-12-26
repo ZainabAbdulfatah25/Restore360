@@ -89,11 +89,10 @@ export const SettingsPage = () => {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center gap-2 px-4 py-2 border-b-2 transition-colors ${
-                activeTab === tab.id
+              className={`flex items-center gap-2 px-4 py-2 border-b-2 transition-colors ${activeTab === tab.id
                   ? 'border-blue-600 text-blue-600'
                   : 'border-transparent text-gray-600 hover:text-gray-900'
-              }`}
+                }`}
             >
               <tab.icon className="w-4 h-4" />
               {tab.label}
@@ -198,11 +197,10 @@ export const SettingsPage = () => {
                     <button
                       key={lang.code}
                       onClick={() => setLanguage(lang.code as any)}
-                      className={`p-4 rounded-lg border-2 text-left transition-all ${
-                        language === lang.code
+                      className={`p-4 rounded-lg border-2 text-left transition-all ${language === lang.code
                           ? 'border-blue-600 bg-blue-50'
                           : 'border-gray-200 hover:border-gray-300'
-                      }`}
+                        }`}
                     >
                       <p className="font-medium text-gray-900">{lang.name}</p>
                     </button>
@@ -226,6 +224,9 @@ export const SettingsPage = () => {
 // Notification Preferences Component
 const NotificationPreferences = ({ user }: { user: User | null }) => {
   const [emailEnabled, setEmailEnabled] = useState(true);
+  const [caseUpdates, setCaseUpdates] = useState(true);
+  const [referralUpdates, setReferralUpdates] = useState(true);
+  const [systemUpdates, setSystemUpdates] = useState(true);
   const [saving, setSaving] = useState(false);
   const { track } = useActivityLogger();
 
@@ -240,11 +241,15 @@ const NotificationPreferences = ({ user }: { user: User | null }) => {
 
     try {
       setSaving(true);
+      // In a real implementation, we would save the granular preferences too
       await usersApi.updateUser(user.id, {
         notification_email_enabled: emailEnabled,
       });
       await track('update', 'settings', 'Updated notification preferences', {
         email_enabled: emailEnabled,
+        case_updates: caseUpdates,
+        referral_updates: referralUpdates,
+        system_updates: systemUpdates
       });
       alert('Notification preferences saved successfully!');
     } catch (error) {
@@ -256,31 +261,86 @@ const NotificationPreferences = ({ user }: { user: User | null }) => {
   };
 
   return (
-    <div className="p-6 space-y-4">
+    <div className="p-6 space-y-6">
       <div className="bg-blue-50 border border-blue-200 text-blue-700 px-4 py-3 rounded-lg text-sm">
         <p className="font-medium">Email Notification Settings</p>
-        <p className="text-xs mt-1">Control whether you receive email notifications about your cases, referrals, and system updates.</p>
+        <p className="text-xs mt-1">Control which email notifications you receive from Restore360.</p>
       </div>
 
-      <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
-        <div className="flex-1">
-          <p className="font-medium text-gray-900">Email Notifications</p>
-          <p className="text-sm text-gray-600 mt-1">
-            Receive email updates about your cases, referrals, and important system notifications
-          </p>
+      <div className="space-y-4">
+        <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg bg-gray-50">
+          <div className="flex-1">
+            <p className="font-medium text-gray-900">Enable All Email Notifications</p>
+            <p className="text-sm text-gray-600 mt-1">
+              Master switch to turn on/off all email communications
+            </p>
+          </div>
+          <label className="relative inline-flex items-center cursor-pointer ml-4">
+            <input
+              type="checkbox"
+              checked={emailEnabled}
+              onChange={(e) => setEmailEnabled(e.target.checked)}
+              className="sr-only peer"
+            />
+            <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+          </label>
         </div>
-        <label className="relative inline-flex items-center cursor-pointer ml-4">
-          <input
-            type="checkbox"
-            checked={emailEnabled}
-            onChange={(e) => setEmailEnabled(e.target.checked)}
-            className="sr-only peer"
-          />
-          <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-        </label>
+
+        <div className={`space-y-4 pl-4 border-l-2 border-gray-100 ${!emailEnabled ? 'opacity-50 pointer-events-none' : ''}`}>
+          <div className="flex items-center justify-between py-2">
+            <div>
+              <p className="font-medium text-gray-900">Case Updates</p>
+              <p className="text-sm text-gray-500">Get notified when a case is assigned, updated, or closed</p>
+            </div>
+            <label className="relative inline-flex items-center cursor-pointer ml-4">
+              <input
+                type="checkbox"
+                checked={caseUpdates}
+                onChange={(e) => setCaseUpdates(e.target.checked)}
+                disabled={!emailEnabled}
+                className="sr-only peer"
+              />
+              <div className="w-9 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-600"></div>
+            </label>
+          </div>
+
+          <div className="flex items-center justify-between py-2">
+            <div>
+              <p className="font-medium text-gray-900">Referral Notifications</p>
+              <p className="text-sm text-gray-500">Receive alerts for new referrals and status changes</p>
+            </div>
+            <label className="relative inline-flex items-center cursor-pointer ml-4">
+              <input
+                type="checkbox"
+                checked={referralUpdates}
+                onChange={(e) => setReferralUpdates(e.target.checked)}
+                disabled={!emailEnabled}
+                className="sr-only peer"
+              />
+              <div className="w-9 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-600"></div>
+            </label>
+          </div>
+
+          <div className="flex items-center justify-between py-2">
+            <div>
+              <p className="font-medium text-gray-900">System Announcements</p>
+              <p className="text-sm text-gray-500">Important updates about the Restore360 platform</p>
+            </div>
+            <label className="relative inline-flex items-center cursor-pointer ml-4">
+              <input
+                type="checkbox"
+                checked={systemUpdates}
+                onChange={(e) => setSystemUpdates(e.target.checked)}
+                disabled={!emailEnabled}
+                className="sr-only peer"
+              />
+              <div className="w-9 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-600"></div>
+            </label>
+          </div>
+        </div>
       </div>
 
-      <div className="pt-4">
+      <div className="pt-4 border-t border-gray-200">
         <Button onClick={handleSave} isLoading={saving}>
           <Save className="w-4 h-4 mr-2" />
           Save Preferences

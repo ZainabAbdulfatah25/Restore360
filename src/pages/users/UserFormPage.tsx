@@ -18,19 +18,26 @@ export const UserFormPage = () => {
   const [error, setError] = useState('');
   const isEdit = !!id;
   const isAdmin = currentUser?.role === 'admin';
+  const isOrgAdmin = currentUser?.role === 'organization' || currentUser?.role === 'manager';
 
   const {
     register,
     handleSubmit,
     reset,
+    setValue,
     formState: { errors, isSubmitting },
   } = useForm<UserFormData>();
 
   useEffect(() => {
     if (isEdit && id) {
       loadUser(id);
+    } else if (isOrgAdmin && currentUser) {
+      // Auto-fill organization details for new users created by Org Admin
+      setValue('organization_name', currentUser.organization_name);
+      setValue('organization_type', currentUser.organization_type);
+      setValue('organization_id', currentUser.organization_id);
     }
-  }, [id, isEdit]);
+  }, [id, isEdit, isOrgAdmin, currentUser, setValue]);
 
   const loadUser = async (userId: string) => {
     try {
@@ -48,6 +55,14 @@ export const UserFormPage = () => {
   const onSubmit = async (data: UserFormData) => {
     try {
       setError('');
+
+      // Enforce organization details for Org Admin
+      if (isOrgAdmin && currentUser) {
+        data.organization_name = currentUser.organization_name;
+        data.organization_type = currentUser.organization_type;
+        data.organization_id = currentUser.organization_id;
+      }
+
       if (isEdit && id) {
         await usersApi.updateUser(id, data);
         await track('update', 'users', `Updated user: ${data.name}`, { user_id: id });
@@ -59,6 +74,29 @@ export const UserFormPage = () => {
     } catch (err: any) {
       setError(err.response?.data?.message || 'Failed to save user');
     }
+  };
+
+  const getRoleOptions = () => {
+    if (isAdmin) {
+      return [
+        { value: 'admin', label: 'Admin' },
+        { value: 'state_admin', label: 'State Admin' },
+        { value: 'organization', label: 'Organization Account' },
+        { value: 'case_worker', label: 'Case Worker' },
+        { value: 'field_officer', label: 'Field Officer' },
+        { value: 'viewer', label: 'Viewer' },
+      ];
+    }
+
+    if (isOrgAdmin) {
+      return [
+        { value: 'manager', label: 'Manager' },
+        { value: 'field_worker', label: 'Field Worker' },
+        { value: 'ordinary_user', label: 'Ordinary User' },
+      ];
+    }
+
+    return [];
   };
 
   if (loading) {
@@ -122,27 +160,13 @@ export const UserFormPage = () => {
 
             <Select
               label="Role"
-              options={
-                isAdmin
-                  ? [
-                      { value: 'admin', label: 'Admin' },
-                      { value: 'organization', label: 'Organization' },
-                      { value: 'case_manager', label: 'Case Manager' },
-                      { value: 'field_worker', label: 'Field Worker' },
-                      { value: 'viewer', label: 'Viewer' },
-                    ]
-                  : [
-                      { value: 'case_manager', label: 'Case Manager' },
-                      { value: 'field_worker', label: 'Field Worker' },
-                      { value: 'viewer', label: 'Viewer' },
-                    ]
-              }
+              options={getRoleOptions()}
               error={errors.role?.message}
               {...register('role', { required: 'Role is required' })}
             />
-            {!isAdmin && (
+            {!isAdmin && !isOrgAdmin && (
               <p className="text-sm text-gray-500 -mt-2">
-                Only administrators can create admin users
+                You do not have permission to create users.
               </p>
             )}
 
@@ -153,25 +177,34 @@ export const UserFormPage = () => {
               {...register('department')}
             />
 
-            <Input
-              label="Organization Name"
-              placeholder="e.g., UNHCR, Red Cross, etc."
-              error={errors.organization_name?.message}
-              {...register('organization_name')}
-            />
+            {/* Organization fields - hidden or read-only for Org Admins */}
+            {(isAdmin || (isOrgAdmin && !isEdit)) && (
+              <>
+                <Input
+                  label="Organization Name"
+                  placeholder="e.g., UNHCR, Red Cross, etc."
+                  error={errors.organization_name?.message}
+                  {...register('organization_name')}
+                  disabled={isOrgAdmin}
+                  className={isOrgAdmin ? 'bg-gray-100' : ''}
+                />
 
-            <Select
-              label="Organization Type"
-              options={[
-                { value: '', label: 'Select type...' },
-                { value: 'ngo', label: 'NGO' },
-                { value: 'government', label: 'Government' },
-                { value: 'un_agency', label: 'UN Agency' },
-                { value: 'private', label: 'Private' },
-              ]}
-              error={errors.organization_type?.message}
-              {...register('organization_type')}
-            />
+                <Select
+                  label="Organization Type"
+                  options={[
+                    { value: '', label: 'Select type...' },
+                    { value: 'ngo', label: 'NGO' },
+                    { value: 'government', label: 'Government' },
+                    { value: 'un_agency', label: 'UN Agency' },
+                    { value: 'private', label: 'Private' },
+                  ]}
+                  error={errors.organization_type?.message}
+                  {...register('organization_type')}
+                  disabled={isOrgAdmin}
+                  className={isOrgAdmin ? 'bg-gray-100' : ''}
+                />
+              </>
+            )}
 
             <div className="space-y-2">
               <label className="block text-sm font-medium text-gray-700">
