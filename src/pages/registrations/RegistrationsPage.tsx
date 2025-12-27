@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
-import { Plus, QrCode, Eye, Edit, Trash2 } from 'lucide-react';
+import { Plus, QrCode, Eye, Trash2, Home, Activity } from 'lucide-react';
 import { MainLayout } from '../../layouts';
 import { Card, Button, Badge, BackToDashboard, QRScanner } from '../../components/common';
 import { DataTable } from '../../components/tables';
 import { useActivityLogger, useAuth } from '../../hooks';
 import { supabase } from '../../lib/supabase';
 import { HouseholdRegistrationForm } from './HouseholdRegistrationForm';
+import { AssessmentList } from '../durable-solutions/AssessmentList';
 
 interface Registration {
   id: string;
@@ -39,6 +40,7 @@ export const RegistrationsPage = () => {
   const [householdMembers, setHouseholdMembers] = useState<HouseholdMember[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [activeTab, setActiveTab] = useState<'details' | 'durable_solutions'>('details');
   const { track } = useActivityLogger();
   const { user } = useAuth();
 
@@ -106,6 +108,7 @@ export const RegistrationsPage = () => {
   const viewHousehold = async (household: Registration) => {
     try {
       setSelectedHousehold(household);
+      setActiveTab('details');
 
       const { data, error } = await supabase
         .from('household_members')
@@ -181,60 +184,89 @@ export const RegistrationsPage = () => {
                 </Button>
               </div>
 
-              <div className="grid grid-cols-2 gap-4 p-4 bg-gray-50 rounded-lg">
-                <div>
-                  <p className="text-sm text-gray-600">Household Head</p>
-                  <p className="font-semibold text-gray-900">{selectedHousehold.household_head || selectedHousehold.full_name}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-gray-600">Phone</p>
-                  <p className="font-semibold text-gray-900">{selectedHousehold.phone}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-gray-600">Address</p>
-                  <p className="font-semibold text-gray-900">{selectedHousehold.address}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-gray-600">Category</p>
-                  <p className="font-semibold text-gray-900 capitalize">{selectedHousehold.category}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-gray-600">Household Size</p>
-                  <p className="font-semibold text-gray-900">{selectedHousehold.household_size} members</p>
-                </div>
-                <div>
-                  <p className="text-sm text-gray-600">Status</p>
-                  <div className="mt-1">{getStatusBadge(selectedHousehold.status)}</div>
-                </div>
+              <div className="flex gap-4 border-b border-gray-200">
+                <button
+                  onClick={() => setActiveTab('details')}
+                  className={`flex items-center gap-2 px-4 py-2 border-b-2 transition-colors ${activeTab === 'details'
+                      ? 'border-blue-600 text-blue-600'
+                      : 'border-transparent text-gray-600 hover:text-gray-900'
+                    }`}
+                >
+                  <Home className="w-4 h-4" />
+                  Details
+                </button>
+                <button
+                  onClick={() => setActiveTab('durable_solutions')}
+                  className={`flex items-center gap-2 px-4 py-2 border-b-2 transition-colors ${activeTab === 'durable_solutions'
+                      ? 'border-blue-600 text-blue-600'
+                      : 'border-transparent text-gray-600 hover:text-gray-900'
+                    }`}
+                >
+                  <Activity className="w-4 h-4" />
+                  Durable Solutions
+                </button>
               </div>
 
-              <div>
-                <h3 className="font-bold text-lg text-gray-900 mb-4">Family Members ({householdMembers.length})</h3>
-                {householdMembers.length > 0 ? (
-                  <div className="space-y-3">
-                    {householdMembers.map((member) => (
-                      <div
-                        key={member.id}
-                        className="p-4 border border-gray-200 rounded-lg hover:border-gray-300 transition-colors"
-                      >
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <p className="font-semibold text-gray-900">{member.full_name}</p>
-                            <p className="text-sm text-gray-600">
-                              {member.relationship} • {member.gender} • {member.age} years
-                            </p>
-                            {member.phone && (
-                              <p className="text-sm text-gray-500 mt-1">Phone: {member.phone}</p>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    ))}
+              {activeTab === 'details' ? (
+                <>
+                  <div className="grid grid-cols-2 gap-4 p-4 bg-gray-50 rounded-lg">
+                    <div>
+                      <p className="text-sm text-gray-600">Household Head</p>
+                      <p className="font-semibold text-gray-900">{selectedHousehold.household_head || selectedHousehold.full_name}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600">Phone</p>
+                      <p className="font-semibold text-gray-900">{selectedHousehold.phone}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600">Address</p>
+                      <p className="font-semibold text-gray-900">{selectedHousehold.address}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600">Category</p>
+                      <p className="font-semibold text-gray-900 capitalize">{selectedHousehold.category}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600">Household Size</p>
+                      <p className="font-semibold text-gray-900">{selectedHousehold.household_size} members</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600">Status</p>
+                      <div className="mt-1">{getStatusBadge(selectedHousehold.status)}</div>
+                    </div>
                   </div>
-                ) : (
-                  <p className="text-gray-500 text-center py-8">No family members registered</p>
-                )}
-              </div>
+
+                  <div>
+                    <h3 className="font-bold text-lg text-gray-900 mb-4">Family Members ({householdMembers.length})</h3>
+                    {householdMembers.length > 0 ? (
+                      <div className="space-y-3">
+                        {householdMembers.map((member) => (
+                          <div
+                            key={member.id}
+                            className="p-4 border border-gray-200 rounded-lg hover:border-gray-300 transition-colors"
+                          >
+                            <div className="flex items-center justify-between">
+                              <div>
+                                <p className="font-semibold text-gray-900">{member.full_name}</p>
+                                <p className="text-sm text-gray-600">
+                                  {member.relationship} • {member.gender} • {member.age} years
+                                </p>
+                                {member.phone && (
+                                  <p className="text-sm text-gray-500 mt-1">Phone: {member.phone}</p>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-gray-500 text-center py-8">No family members registered</p>
+                    )}
+                  </div>
+                </>
+              ) : (
+                <AssessmentList registrationId={selectedHousehold.id} />
+              )}
             </div>
           </Card>
         </div>

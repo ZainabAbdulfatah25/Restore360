@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { MapPin, User, QrCode } from 'lucide-react';
+import { MapPin, User, QrCode, Camera } from 'lucide-react';
 import { Card, Button, Input, Select } from '../../components/common';
 import { supabase } from '../../lib/supabase';
 import { QRCodeSVG } from 'qrcode.react';
@@ -54,6 +54,8 @@ export const IndividualRegistrationForm = ({ onSuccess, onCancel }: Props) => {
   const [error, setError] = useState('');
   const [currentStep, setCurrentStep] = useState(1);
   const { track } = useActivityLogger();
+  const [photoFile, setPhotoFile] = useState<File | null>(null);
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
 
   const {
     register,
@@ -81,9 +83,45 @@ export const IndividualRegistrationForm = ({ onSuccess, onCancel }: Props) => {
     }
   };
 
+  const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setPhotoFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPhotoPreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   const onSubmit = async (data: IndividualFormData) => {
     try {
       setError('');
+
+      let photoUrl = null;
+
+      // Upload photo if exists
+      if (photoFile) {
+        const fileExt = photoFile.name.split('.').pop();
+        const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+        const filePath = `${fileName}`;
+
+        const { error: uploadError } = await supabase.storage
+          .from('photos')
+          .upload(filePath, photoFile);
+
+        if (uploadError) {
+          console.error('Photo upload error:', uploadError);
+          // Continue without photo if upload fails, but warn user? 
+          // For now, let's just log it and proceed without the photo
+        } else {
+          const { data: { publicUrl } } = supabase.storage
+            .from('photos')
+            .getPublicUrl(filePath);
+          photoUrl = publicUrl;
+        }
+      }
 
       const generatedQrCode = `IND-${Date.now()}-${Math.random().toString(36).substring(2, 9).toUpperCase()}`;
 
@@ -122,6 +160,7 @@ export const IndividualRegistrationForm = ({ onSuccess, onCancel }: Props) => {
         displacement_duration: data.displacement_duration,
         shelter_type: data.shelter_type,
         has_documentation: data.has_documentation || false,
+        photo_url: photoUrl,
       };
 
       if (data.disabilities) {
@@ -256,9 +295,8 @@ export const IndividualRegistrationForm = ({ onSuccess, onCancel }: Props) => {
               key={step}
               type="button"
               onClick={() => setCurrentStep(step)}
-              className={`flex-1 h-2 rounded-full transition-colors ${
-                currentStep === step ? 'bg-blue-600' : currentStep > step ? 'bg-green-500' : 'bg-gray-200'
-              }`}
+              className={`flex-1 h-2 rounded-full transition-colors ${currentStep === step ? 'bg-blue-600' : currentStep > step ? 'bg-green-500' : 'bg-gray-200'
+                }`}
             />
           ))}
         </div>
@@ -272,6 +310,28 @@ export const IndividualRegistrationForm = ({ onSuccess, onCancel }: Props) => {
         {currentStep === 1 && (
           <div className="space-y-4">
             <h4 className="font-semibold text-gray-900">Personal Information</h4>
+
+            <div className="flex items-center gap-4 mb-4">
+              <div className="relative w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center overflow-hidden border-2 border-dashed border-gray-300">
+                {photoPreview ? (
+                  <img src={photoPreview} alt="Preview" className="w-full h-full object-cover" />
+                ) : (
+                  <Camera className="w-8 h-8 text-gray-400" />
+                )}
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Profile Photo
+                </label>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handlePhotoChange}
+                  className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                />
+                <p className="text-xs text-gray-500 mt-1">Upload a clear face photo</p>
+              </div>
+            </div>
 
             <Input
               label="Full Name"

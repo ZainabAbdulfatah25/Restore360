@@ -7,5 +7,6 @@ export { referralsApi } from './referrals';
 export { activityApi } from './activity';
 export { reportsApi } from './reports';
 export { organizationsApi } from './organizations';
+export { durableSolutionsApi } from './durableSolutions';
 export type { ActivityLogPayload } from './activity';
-export type { Organization } from './organizations';
+

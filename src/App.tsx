@@ -20,6 +20,7 @@ import { CasesListPage, CaseDetailPage, CaseFormPage } from './pages/cases';
 import { ReferralsPage } from './pages/referrals';
 import { RegistrationsPage } from './pages/registrations';
 import { UsersListPage, UserDetailPage, UserFormPage } from './pages/users';
+import { AssessmentForm } from './pages/durable-solutions/AssessmentForm';
 
 
 function App() {
@@ -33,7 +34,7 @@ function App() {
               <Route path="/" element={<WelcomePage />} />
               <Route path="/learn-more" element={<LearnMorePage />} />
               <Route path="/register" element={<PublicRegistrationPage />} />
-              
+
               {/* Auth Routes */}
               <Route path="/login" element={<LoginPage />} />
               <Route path="/signup" element={<SignupPage />} />
@@ -41,7 +42,7 @@ function App() {
               <Route path="/reset-password" element={<ResetPasswordPage />} />
 
               {/* Protected Routes (Using Direct Wrapper Pattern) */}
-              
+
               <Route
                 path="/dashboard"
                 element={
@@ -110,6 +111,14 @@ function App() {
                 element={
                   <ProtectedRoute>
                     <RegistrationsPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/durable-solutions/new/:registrationId"
+                element={
+                  <ProtectedRoute>
+                    <AssessmentForm />
                   </ProtectedRoute>
                 }
               />

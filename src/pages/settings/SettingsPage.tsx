@@ -90,8 +90,8 @@ export const SettingsPage = () => {
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
               className={`flex items-center gap-2 px-4 py-2 border-b-2 transition-colors ${activeTab === tab.id
-                  ? 'border-blue-600 text-blue-600'
-                  : 'border-transparent text-gray-600 hover:text-gray-900'
+                ? 'border-blue-600 text-blue-600'
+                : 'border-transparent text-gray-600 hover:text-gray-900'
                 }`}
             >
               <tab.icon className="w-4 h-4" />
@@ -198,8 +198,8 @@ export const SettingsPage = () => {
                       key={lang.code}
                       onClick={() => setLanguage(lang.code as any)}
                       className={`p-4 rounded-lg border-2 text-left transition-all ${language === lang.code
-                          ? 'border-blue-600 bg-blue-50'
-                          : 'border-gray-200 hover:border-gray-300'
+                        ? 'border-blue-600 bg-blue-50'
+                        : 'border-gray-200 hover:border-gray-300'
                         }`}
                     >
                       <p className="font-medium text-gray-900">{lang.name}</p>
@@ -233,6 +233,9 @@ const NotificationPreferences = ({ user }: { user: User | null }) => {
   useEffect(() => {
     if (user) {
       setEmailEnabled(user.notification_email_enabled ?? true);
+      setCaseUpdates(user.notification_case_updates ?? true);
+      setReferralUpdates(user.notification_referral_updates ?? true);
+      setSystemUpdates(user.notification_system_updates ?? true);
     }
   }, [user]);
 
@@ -241,10 +244,16 @@ const NotificationPreferences = ({ user }: { user: User | null }) => {
 
     try {
       setSaving(true);
-      // In a real implementation, we would save the granular preferences too
-      await usersApi.updateUser(user.id, {
+
+      const updateData = {
         notification_email_enabled: emailEnabled,
-      });
+        notification_case_updates: caseUpdates,
+        notification_referral_updates: referralUpdates,
+        notification_system_updates: systemUpdates
+      };
+
+      await usersApi.updateUser(user.id, updateData);
+
       await track('update', 'settings', 'Updated notification preferences', {
         email_enabled: emailEnabled,
         case_updates: caseUpdates,

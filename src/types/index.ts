@@ -12,6 +12,9 @@ export interface User {
   description?: string;
   status: 'active' | 'inactive';
   notification_email_enabled?: boolean; // Email notification preference
+  notification_case_updates?: boolean;
+  notification_referral_updates?: boolean;
+  notification_system_updates?: boolean;
   password?: string;
   created_at: string;
   updated_at: string;
@@ -191,6 +194,22 @@ export interface DurableSolutionsFollowup {
   next_followup_date?: string;
   conducted_by?: string;
   notes?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface DurableSolutionAssessment {
+  id: string;
+  registration_id: string;
+  assessment_date: string;
+  assessor_id?: string;
+  safety_score: number;
+  housing_score: number;
+  livelihood_score: number;
+  social_cohesion_score: number;
+  access_to_services_score: number;
+  notes?: string;
+  next_followup_date?: string;
   created_at: string;
   updated_at: string;
 }
