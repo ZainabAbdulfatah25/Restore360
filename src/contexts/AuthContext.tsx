@@ -1,17 +1,6 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { supabase } from '../lib/supabase';
-
-interface User {
-  id: string;
-  email: string;
-  name: string;
-  phone?: string;
-  department?: string;
-  role: string;
-  organization_name?: string;
-  organization_type?: string;
-  user_type?: string;
-}
+import { User } from '../types';
 
 interface AuthContextType {
   user: User | null;
@@ -132,7 +121,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           email: data.user.email!,
           name: data.user.email!.split('@')[0],
           role: 'viewer',
-          user_type: 'individual'
+          user_type: 'individual',
+          status: 'active',
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
         };
 
         const { error: insertError } = await supabase
@@ -144,8 +136,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           return null;
         }
 
-        setUser(newProfile as User);
-        return newProfile as User;
+        setUser(newProfile as unknown as User);
+        return newProfile as unknown as User;
       }
     }
 

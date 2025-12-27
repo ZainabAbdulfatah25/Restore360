@@ -9,6 +9,7 @@ import { queryClient } from './utils/queryClient';
 import { WelcomePage, LearnMorePage, PublicRegistrationPage } from './pages';
 import { DashboardPage } from './pages/DashboardPage';
 import { AdminDashboardPage } from './pages/admin';
+import { OrganizationDashboardPage } from './pages/organization/OrganizationDashboardPage';
 import { SettingsPage } from './pages/settings';
 import { ReportsPage } from './pages/reports';
 
@@ -55,8 +56,17 @@ function App() {
               <Route
                 path="/admin"
                 element={
-                  <ProtectedRoute allowedRoles={['admin', 'organization']}>
+                  <ProtectedRoute allowedRoles={['admin', 'state_admin']}>
                     <AdminDashboardPage />
+                  </ProtectedRoute>
+                }
+              />
+
+              <Route
+                path="/organization"
+                element={
+                  <ProtectedRoute allowedRoles={['organization', 'manager']}>
+                    <OrganizationDashboardPage />
                   </ProtectedRoute>
                 }
               />

@@ -16,48 +16,103 @@ export const QRScanner = ({ onScan, onClose }: Props) => {
   const scannerRef = useRef<Html5Qrcode | null>(null);
   const [cameraPermission, setCameraPermission] = useState<boolean | null>(null);
 
+  // Cleanup on unmount
   useEffect(() => {
     return () => {
-      stopScanner();
+      if (scannerRef.current?.isScanning) {
+        scannerRef.current.stop().catch(console.error);
+        scannerRef.current.clear();
+      }
     };
   }, []);
 
-  const startScanner = async () => {
-    try {
-      setError('');
-      const scanner = new Html5Qrcode('qr-reader');
-      scannerRef.current = scanner;
+  // Initialize scanner when isScanning becomes true
+  useEffect(() => {
+    let mounted = true;
 
-      await scanner.start(
-        { facingMode: 'environment' },
-        {
-          fps: 10,
-          qrbox: { width: 250, height: 250 },
-        },
-        (decodedText) => {
-          stopScanner();
-          onScan(decodedText);
-        },
-        () => {
+    const initScanner = async () => {
+      if (isScanning && !scannerRef.current) {
+        // Small delay to ensure DOM is ready
+        await new Promise(resolve => setTimeout(resolve, 100));
+
+        if (!mounted) return;
+
+        try {
+          // Verify element exists
+          if (!document.getElementById('qr-reader')) {
+            throw new Error("QR reader element not found");
+          }
+
+          const scanner = new Html5Qrcode('qr-reader');
+          scannerRef.current = scanner;
+
+          await scanner.start(
+            { facingMode: 'environment' },
+            {
+              fps: 10,
+              qrbox: { width: 250, height: 250 },
+            },
+            (decodedText) => {
+              // Success callback
+              handleScanSuccess(decodedText);
+            },
+            () => {
+              // Ignore scan errors as they happen every frame
+            }
+          );
+
+          if (mounted) setCameraPermission(true);
+        } catch (err) {
+          console.error('Scanner initialization error:', err);
+          if (mounted) {
+            setCameraPermission(false);
+            setError('Failed to access camera. Please check permissions or try again.');
+            setIsScanning(false);
+          }
         }
-      );
+      }
+    };
 
-      setIsScanning(true);
-      setCameraPermission(true);
-    } catch (err: any) {
-      console.error('Scanner error:', err);
-      setCameraPermission(false);
-      setError('Failed to access camera. Please check permissions.');
+    if (isScanning) {
+      initScanner();
     }
+
+    return () => {
+      mounted = false;
+    };
+  }, [isScanning]);
+
+  const handleScanSuccess = async (decodedText: string) => {
+    if (scannerRef.current) {
+      try {
+        if (scannerRef.current.isScanning) {
+          await scannerRef.current.stop();
+        }
+        scannerRef.current.clear();
+        scannerRef.current = null;
+      } catch (e) {
+        console.error("Stop failed", e);
+      }
+    }
+    setIsScanning(false);
+    onScan(decodedText);
   };
 
-  const stopScanner = async () => {
-    if (scannerRef.current && scannerRef.current.isScanning) {
+  const startScanning = () => {
+    setError('');
+    setIsScanning(true);
+  };
+
+  const stopScanning = async () => {
+    if (scannerRef.current) {
       try {
-        await scannerRef.current.stop();
+        if (scannerRef.current.isScanning) {
+          await scannerRef.current.stop();
+        }
+        scannerRef.current.clear();
         scannerRef.current = null;
-      } catch (err) {
-        console.error('Error stopping scanner:', err);
+      } catch (e) {
+        console.error("Stop failed", e);
       }
     }
     setIsScanning(false);
@@ -99,8 +154,8 @@ export const QRScanner = ({ onScan, onClose }: Props) => {
           )}
 
           <div className="space-y-4">
-            {!isScanning && cameraPermission !== false && (
-              <Button onClick={startScanner} className="w-full">
+            {!isScanning && (
+              <Button onClick={startScanning} className="w-full">
                 <Camera className="w-4 h-4 mr-2" />
                 Start Camera Scanner
               </Button>
@@ -108,8 +163,8 @@ export const QRScanner = ({ onScan, onClose }: Props) => {
 
             {isScanning && (
               <div className="space-y-3">
-                <div id="qr-reader" className="rounded-lg overflow-hidden"></div>
-                <Button onClick={stopScanner} variant="ghost" className="w-full">
+                <div id="qr-reader" className="rounded-lg overflow-hidden bg-black min-h-[300px]"></div>
+                <Button onClick={stopScanning} variant="ghost" className="w-full">
                   Stop Scanner
                 </Button>
               </div>
