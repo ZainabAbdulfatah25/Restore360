@@ -30,8 +30,10 @@ export const LoginPage = () => {
       setError('');
       const user = await login(data.email, data.password);
 
-      if (user?.role === 'admin' || user?.role === 'organization') {
+      if (user?.role === 'admin' || user?.role === 'state_admin') {
         navigate('/admin');
+      } else if (user?.role === 'organization' || user?.role === 'manager') {
+        navigate('/organization');
       } else {
         navigate('/dashboard');
       }

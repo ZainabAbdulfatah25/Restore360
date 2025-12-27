@@ -12,6 +12,7 @@ import {
   X,
   LogOut,
   Shield,
+  Building2,
 } from 'lucide-react';
 import { useAuth } from '../hooks';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -23,7 +24,8 @@ interface MainLayoutProps {
 
 const getNavigation = (t: (key: string) => string) => [
   { name: t('dashboard'), href: '/dashboard', icon: LayoutDashboard },
-  { name: 'Admin', href: '/admin', icon: Shield, roles: ['admin', 'case_worker', 'organization'] },
+  { name: 'Admin', href: '/admin', icon: Shield, roles: ['admin', 'state_admin'] },
+  { name: 'Organization', href: '/organization', icon: Building2, roles: ['organization', 'manager'] },
   { name: t('users'), href: '/users', icon: Users, roles: ['admin'] },
   { name: t('cases'), href: '/cases', icon: FolderOpen },
   { name: t('registrations'), href: '/registrations', icon: FileText },
@@ -64,9 +66,8 @@ export const MainLayout = ({ children }: MainLayoutProps) => {
       </div>
 
       <aside
-        className={`fixed inset-y-0 left-0 z-30 w-64 bg-white border-r border-gray-200 transform transition-transform duration-300 lg:translate-x-0 ${
-          sidebarOpen ? 'translate-x-0' : '-translate-x-full'
-        }`}
+        className={`fixed inset-y-0 left-0 z-30 w-64 bg-white border-r border-gray-200 transform transition-transform duration-300 lg:translate-x-0 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'
+          }`}
       >
         <div className="flex flex-col h-full">
           <div className="hidden lg:flex items-center gap-2 px-6 py-5 bg-gradient-to-r from-primary-600 to-accent-600">
@@ -82,11 +83,10 @@ export const MainLayout = ({ children }: MainLayoutProps) => {
                   key={item.name}
                   to={item.href}
                   onClick={() => setSidebarOpen(false)}
-                  className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 ${
-                    isActive
-                      ? 'bg-gradient-to-r from-primary-500 to-accent-500 text-white shadow-md transform scale-105'
-                      : 'text-gray-700 hover:bg-gray-100 hover:translate-x-1'
-                  }`}
+                  className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 ${isActive
+                    ? 'bg-gradient-to-r from-primary-500 to-accent-500 text-white shadow-md transform scale-105'
+                    : 'text-gray-700 hover:bg-gray-100 hover:translate-x-1'
+                    }`}
                 >
                   <item.icon className="w-5 h-5" />
                   {item.name}
